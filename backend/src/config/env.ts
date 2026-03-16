@@ -10,8 +10,31 @@ const booleanFromEnv = z
 
 const sameSiteFromEnv = z.enum(['lax', 'strict', 'none'])
 
+function optionalEnvString<TSchema extends z.ZodTypeAny>(schema: TSchema) {
+  return z.preprocess(
+    (value) => {
+      if (typeof value === 'string' && value.trim() === '') {
+        return undefined
+      }
+
+      return value
+    },
+    schema.optional(),
+  )
+}
+
 function isHttpsUrl(value: string) {
   return new URL(value).protocol === 'https:'
+}
+
+function isValidDatabaseUrl(value: string) {
+  try {
+    const url = new URL(value)
+
+    return url.protocol === 'postgresql:' || url.protocol === 'postgres:'
+  } catch {
+    return false
+  }
 }
 
 function normalizeOriginList(value: string) {
@@ -28,20 +51,25 @@ const envSchema = z.object({
   APP_ORIGIN: z.string().url('APP_ORIGIN must be a valid URL').default('http://localhost:5173'),
   TRUSTED_APP_ORIGINS: z.string().default('http://localhost:5173'),
   TRUST_PROXY: booleanFromEnv.default('false'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_URL: z
+    .string()
+    .min(1, 'DATABASE_URL is required')
+    .refine(
+      isValidDatabaseUrl,
+      'DATABASE_URL must be a valid postgres connection URL and any special characters in the password must be URL-encoded',
+    ),
   GITHUB_CLIENT_ID: z.string().min(1, 'GITHUB_CLIENT_ID is required'),
   GITHUB_CLIENT_SECRET: z.string().min(1, 'GITHUB_CLIENT_SECRET is required'),
   GITHUB_CALLBACK_URL: z.string().url('GITHUB_CALLBACK_URL must be a valid URL'),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
-  TOKEN_ENCRYPTION_SECRET: z
-    .string()
-    .min(32, 'TOKEN_ENCRYPTION_SECRET must be at least 32 characters')
-    .optional(),
+  TOKEN_ENCRYPTION_SECRET: optionalEnvString(
+    z.string().min(32, 'TOKEN_ENCRYPTION_SECRET must be at least 32 characters'),
+  ),
   SESSION_TTL_HOURS: z.coerce.number().int().positive().default(168),
   SESSION_COOKIE_SAME_SITE: sameSiteFromEnv.default('lax'),
-  SESSION_COOKIE_DOMAIN: z.string().min(1).optional(),
+  SESSION_COOKIE_DOMAIN: optionalEnvString(z.string().min(1)),
   REQUEST_BODY_LIMIT_KB: z.coerce.number().int().positive().max(1024).default(256),
-  GEMINI_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: optionalEnvString(z.string().min(1)),
   GEMINI_MODEL: z.string().min(1).default('gemini-2.5-flash'),
   GEMINI_API_BASE_URL: z
     .string()

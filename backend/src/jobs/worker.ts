@@ -217,17 +217,23 @@ export function startBackgroundJobWorker() {
       return
     }
 
-    while (activeJobs < env.JOB_CONCURRENCY) {
-      const job = await claimNextQueuedJob()
+    try {
+      while (activeJobs < env.JOB_CONCURRENCY) {
+        const job = await claimNextQueuedJob()
 
-      if (!job) {
-        break
+        if (!job) {
+          break
+        }
+
+        activeJobs += 1
+
+        void processJob(job).finally(() => {
+          activeJobs -= 1
+        })
       }
-
-      activeJobs += 1
-
-      void processJob(job).finally(() => {
-        activeJobs -= 1
+    } catch (error) {
+      logger.error('Background job worker tick failed', {
+        error: serializeErrorForLogging(error),
       })
     }
   }
