@@ -1,4 +1,10 @@
-import type { DeveloperArchetypeResult, DerivedAnalysisSignals, GenomeScoreResult, LearningVelocityResult, SkillScoringResult } from './analysisTypes'
+import type {
+  DeveloperArchetypeResult,
+  DerivedAnalysisSignals,
+  GenomeScoreResult,
+  LearningVelocityResult,
+  SkillScoringResult,
+} from './analysisTypes'
 import { average, clampScore, pickStrongestCoreCategories, scaleToRange } from './analysisUtils'
 import type { FusedAnalysisSignals } from './fusion/fusionTypes'
 
@@ -36,7 +42,10 @@ export function calculateGenomeScore(input: {
     average(coreScoreValues) * 0.72 +
       scaleToRange(input.signals.totalStars, 30, 8) +
       scaleToRange(input.signals.multiCategoryRepositoryCount, 5, 10) +
-      scaleToRange(input.fusion.interviewReadiness.score, 100, 4),
+      scaleToRange(input.fusion.builderStrength.score, 100, 5) +
+      scaleToRange(input.fusion.problemSolvingStrength.score, 100, 5) +
+      scaleToRange(input.fusion.interviewReadiness.score, 100, 4) +
+      scaleToRange(input.fusion.sourceCoverage.connectedSources.length, 3, 3),
   )
 
   const recency = clampScore(
@@ -80,7 +89,7 @@ export function calculateGenomeScore(input: {
       growth,
     },
     explanation:
-      'The genome score blends stack breadth, repository consistency, inferred skill depth, recent activity, and learning momentum using metadata-only analysis. When multiple providers are connected, direct practice signals can strengthen depth without replacing the rule-based core.',
-    summary: `${input.developerType.label} profile with strongest signals in ${strongestCoreAreas.join(' and ')}. Score is based on ${input.signals.totalRepositories} synced repositories, ${input.signals.languageBreadth} detected languages, and fused multi-source evidence when available rather than source code inspection.`,
+      'The genome score blends stack breadth, repository consistency, inferred skill depth, recent activity, and learning momentum using metadata-only analysis. Multi-source fusion adds only bounded lifts from builder, interview, and direct problem-solving evidence so deterministic category scoring remains the source of truth.',
+    summary: `${input.developerType.label} profile with strongest signals in ${strongestCoreAreas.join(' and ')}. Score is based on ${input.signals.totalRepositories} synced repositories, ${input.signals.languageBreadth} detected languages, and ${input.fusion.sourceCoverage.connectedSources.length > 1 ? 'cross-source fused evidence from linked coding platforms' : 'the currently available synced evidence'} rather than source code inspection.`,
   }
 }

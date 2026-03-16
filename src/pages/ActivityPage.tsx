@@ -33,7 +33,12 @@ const actionButtonClass =
 
 export function ActivityPage() {
   const { data, error, isLoading, refresh } = useApiResource(getActivityData)
-  const { error: refreshError, isRefreshing, runRefresh } = useWorkspaceRefresh()
+  const {
+    error: refreshError,
+    isRefreshing,
+    runRefresh,
+    statusMessage,
+  } = useWorkspaceRefresh()
 
   const handleWorkspaceRefresh = async () => {
     await runRefresh()
@@ -111,6 +116,14 @@ export function ActivityPage() {
         <StateNotice
           description={refreshError}
           title="Activity refresh needs attention"
+          tone="cyan"
+        />
+      ) : null}
+
+      {isRefreshing && statusMessage ? (
+        <StateNotice
+          description="Background sync and analysis jobs are running. Activity insights will refresh automatically when the new data is ready."
+          title={statusMessage}
           tone="cyan"
         />
       ) : null}
@@ -211,7 +224,7 @@ export function ActivityPage() {
                         <div>
                           <p className="font-semibold text-white">{repo.repositoryName}</p>
                           <p className="mt-1 text-xs text-ink-soft">
-                            {repo.activityLevel} · {repo.activeWeeks} active weeks
+                            {repo.activityLevel} | {repo.activeWeeks} active weeks
                           </p>
                         </div>
                         <span className="font-semibold text-violet-soft">

@@ -9,16 +9,19 @@ export const developerReportDeliveryStrategy = {
 }
 
 export async function loadPersistedDeveloperReport(
-  _userId: string,
-  _reportType: DeveloperReportType,
+  userId: string,
+  reportType: DeveloperReportType,
 ): Promise<DeveloperReportModelOutput | null> {
+  void userId
+  void reportType
   return null
 }
 
-export async function storeGeneratedDeveloperReport(_input: {
+export async function storeGeneratedDeveloperReport(input: {
   userId: string
   reportType: DeveloperReportType
   report: DeveloperReportModelOutput
 }): Promise<void> {
+  void input
   return
 }

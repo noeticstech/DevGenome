@@ -108,8 +108,7 @@ function buildGithubSourceSignals(
   const databaseBreadth = countCategoryRepositoriesWithBreadth(signals, 'databases')
   const devopsBreadth = countCategoryRepositoriesWithBreadth(signals, 'devops')
 
-  const { recentRepositoryCreations, priorRepositoryCreations } =
-    getRecentRepositoryCounts(signals)
+  const { recentRepositoryCreations } = getRecentRepositoryCounts(signals)
 
   const commitGrowth =
     signals.priorCommitCount === 0

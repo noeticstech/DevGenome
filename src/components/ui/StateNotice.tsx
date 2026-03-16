@@ -41,7 +41,7 @@ export function StateNotice({
             type="button"
           >
             <RefreshCw className={cn('h-4 w-4', isActionLoading ? 'animate-spin' : '')} />
-            {isActionLoading ? 'Working…' : actionLabel}
+            {isActionLoading ? 'Working...' : actionLabel}
           </button>
         ) : null}
       </div>

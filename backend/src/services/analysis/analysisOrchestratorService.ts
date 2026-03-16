@@ -174,7 +174,9 @@ export async function generateAndPersistUserAnalysis(
     fusionSummary: {
       interviewReadinessScore: fusion.interviewReadiness.score,
       interviewReadinessLabel: getInterviewReadinessLabel(fusion.interviewReadiness.score),
+      interviewReadinessSources: getTopContributingSources(fusion.interviewReadiness, 3),
       problemSolvingSources: getTopContributingSources(fusion.problemSolvingStrength, 3),
+      builderSources: getTopContributingSources(fusion.builderStrength, 3),
       growthSources: getTopContributingSources(fusion.growthMomentum, 3),
     },
   }

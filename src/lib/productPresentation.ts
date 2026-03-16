@@ -16,7 +16,7 @@ const languagePalette = ['#c084fc', '#22d3ee', '#3b82f6', '#fb923c', '#34d399', 
 
 export function formatNumber(value: number | null | undefined) {
   if (value === null || value === undefined) {
-    return '—'
+    return '--'
   }
 
   return new Intl.NumberFormat('en-US').format(value)
@@ -24,7 +24,7 @@ export function formatNumber(value: number | null | undefined) {
 
 export function formatPercent(value: number | null | undefined) {
   if (value === null || value === undefined) {
-    return '—'
+    return '--'
   }
 
   return `${Math.round(value)}%`
@@ -32,7 +32,7 @@ export function formatPercent(value: number | null | undefined) {
 
 export function formatDate(value: string | null | undefined) {
   if (!value) {
-    return '—'
+    return '--'
   }
 
   return new Intl.DateTimeFormat('en-US', {
@@ -44,7 +44,7 @@ export function formatDate(value: string | null | undefined) {
 
 export function formatShortDate(value: string | null | undefined) {
   if (!value) {
-    return '—'
+    return '--'
   }
 
   return new Intl.DateTimeFormat('en-US', {

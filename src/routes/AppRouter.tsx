@@ -11,6 +11,9 @@ const LandingPage = lazy(async () => ({
 const LoginPage = lazy(async () => ({
   default: (await import('@/pages/LoginPage')).LoginPage,
 }))
+const PublicProfilePage = lazy(async () => ({
+  default: (await import('@/pages/PublicProfilePage')).PublicProfilePage,
+}))
 const DashboardPage = lazy(async () => ({
   default: (await import('@/pages/DashboardPage')).DashboardPage,
 }))
@@ -62,6 +65,7 @@ export function AppRouter() {
         <Routes>
           <Route element={<MarketingLayout />}>
             <Route element={<LandingPage />} path="/" />
+            <Route element={<PublicProfilePage />} path="/profile/:shareToken" />
           </Route>
           <Route element={<AppLayout compact />}>
             <Route element={<LoginPage />} path="/login" />

@@ -1,6 +1,5 @@
 import type {
   BackgroundJob,
-  BackgroundJobStatus,
   BackgroundJobTrigger,
   BackgroundJobType,
 } from '@prisma/client'

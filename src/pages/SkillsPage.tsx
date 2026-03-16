@@ -34,7 +34,12 @@ const priorityToneMap = {
 
 export function SkillsPage() {
   const { data, error, isLoading, refresh } = useApiResource(getSkillsData)
-  const { error: refreshError, isRefreshing, runRefresh } = useWorkspaceRefresh()
+  const {
+    error: refreshError,
+    isRefreshing,
+    runRefresh,
+    statusMessage,
+  } = useWorkspaceRefresh()
 
   const comparisonChart = data ? mapRoleComparisonData(data.comparison.items) : []
 
@@ -86,6 +91,14 @@ export function SkillsPage() {
         <StateNotice
           description={refreshError}
           title="Skill refresh needs attention"
+          tone="cyan"
+        />
+      ) : null}
+
+      {isRefreshing && statusMessage ? (
+        <StateNotice
+          description="Background sync and analysis jobs are running. This skill-gap view will refresh automatically when the latest profile is ready."
+          title={statusMessage}
           tone="cyan"
         />
       ) : null}

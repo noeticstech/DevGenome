@@ -305,6 +305,13 @@ export interface RoleSkillGapReport {
   suggestedProjects: string[]
   summary: string
   interviewReadinessNote?: string
+  roleFusion?: {
+    fusionScore: number
+    adjustment: number
+    leadingSources: AnalysisSource[]
+    explanation: string
+    sourceContributions: AnalysisSourceContribution[]
+  }
 }
 
 export interface GeneratedTimelineEvent {
@@ -329,7 +336,9 @@ export interface DevGenomeAnalysisResult {
   fusionSummary?: {
     interviewReadinessScore: number
     interviewReadinessLabel: string
+    interviewReadinessSources?: AnalysisSource[]
     problemSolvingSources: AnalysisSource[]
+    builderSources?: AnalysisSource[]
     growthSources: AnalysisSource[]
   }
 }

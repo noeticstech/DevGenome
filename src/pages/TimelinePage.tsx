@@ -1,4 +1,6 @@
 import { ArrowRight, Download, Share2, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
@@ -11,6 +13,13 @@ import { TimelineNode } from '@/components/ui/TimelineNode'
 import { useApiResource } from '@/hooks/useApiResource'
 import { useWorkspaceRefresh } from '@/hooks/useWorkspaceRefresh'
 import { getTimelineData } from '@/lib/api/product'
+import { getSettingsData } from '@/lib/api/settings'
+import { exportProfileData } from '@/lib/api/sharing'
+import {
+  buildPublicProfilePreviewUrl,
+  copyTextToClipboard,
+  downloadJsonFile,
+} from '@/lib/productActions'
 import {
   formatDate,
   getProductStateDescription,
@@ -22,12 +31,79 @@ const actionButtonClass =
   'inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-70'
 
 export function TimelinePage() {
+  const navigate = useNavigate()
   const { data, error, isLoading, refresh } = useApiResource(getTimelineData)
-  const { error: refreshError, isRefreshing, runRefresh } = useWorkspaceRefresh()
+  const {
+    error: refreshError,
+    isRefreshing,
+    runRefresh,
+    statusMessage,
+  } = useWorkspaceRefresh()
+  const [feedback, setFeedback] = useState<{
+    tone: 'cyan' | 'violet'
+    title: string
+    description: string
+  } | null>(null)
 
   const handleWorkspaceRefresh = async () => {
     await runRefresh()
     await refresh()
+  }
+
+  const handleExportProfile = async () => {
+    try {
+      const response = await exportProfileData()
+      const exportDate = response.export.exportedAt.slice(0, 10)
+      downloadJsonFile(`devgenome-profile-${exportDate}.json`, response)
+      setFeedback({
+        tone: 'cyan',
+        title: 'Profile export ready',
+        description: 'A JSON export of your current DevGenome profile was downloaded.',
+      })
+    } catch (caughtError) {
+      setFeedback({
+        tone: 'violet',
+        title: 'Unable to export profile data',
+        description:
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'Please try again in a moment.',
+      })
+    }
+  }
+
+  const handleShareProfile = async () => {
+    try {
+      const settings = await getSettingsData()
+      const previewUrl = buildPublicProfilePreviewUrl(settings.privacy.sharing.sharePath)
+
+      if (!settings.privacy.sharing.publicProfileEnabled || !previewUrl) {
+        setFeedback({
+          tone: 'violet',
+          title: 'Public profile sharing is disabled',
+          description:
+            'Enable Public profile visibility in Settings before sharing your DevGenome externally.',
+        })
+        navigate('/settings')
+        return
+      }
+
+      await copyTextToClipboard(previewUrl)
+      setFeedback({
+        tone: 'cyan',
+        title: 'Public profile link copied',
+        description: previewUrl,
+      })
+    } catch (caughtError) {
+      setFeedback({
+        tone: 'violet',
+        title: 'Unable to share the profile',
+        description:
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'Please try again in a moment.',
+      })
+    }
   }
 
   const milestones = data ? mapTimelineEventsToMilestones(data.events) : []
@@ -69,11 +145,19 @@ export function TimelinePage() {
             >
               {isRefreshing ? 'Refreshing timeline' : 'Refresh timeline'}
             </button>
-            <button className={actionButtonClass} type="button">
+            <button
+              className={actionButtonClass}
+              onClick={() => void handleExportProfile()}
+              type="button"
+            >
               <Download className="h-4 w-4" />
               Export genome data
             </button>
-            <button className={actionButtonClass} type="button">
+            <button
+              className={actionButtonClass}
+              onClick={() => void handleShareProfile()}
+              type="button"
+            >
               <Share2 className="h-4 w-4" />
               Share profile
             </button>
@@ -85,6 +169,14 @@ export function TimelinePage() {
         eyebrow="Timeline"
         title="Developer evolution timeline"
       />
+
+      {feedback ? (
+        <StateNotice
+          description={feedback.description}
+          title={feedback.title}
+          tone={feedback.tone}
+        />
+      ) : null}
 
       {data && data.meta.state !== 'ready' ? (
         <StateNotice
@@ -101,6 +193,14 @@ export function TimelinePage() {
         <StateNotice
           description={refreshError}
           title="Timeline refresh needs attention"
+          tone="cyan"
+        />
+      ) : null}
+
+      {isRefreshing && statusMessage ? (
+        <StateNotice
+          description="Background sync and analysis jobs are running. Timeline milestones and growth metrics will refresh when the new analysis finishes."
+          title={statusMessage}
           tone="cyan"
         />
       ) : null}

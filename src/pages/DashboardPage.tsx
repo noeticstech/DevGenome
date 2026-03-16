@@ -28,6 +28,7 @@ import {
   formatDate,
   formatNumber,
   formatRelativeTime,
+  formatShortDate,
   getProductStateDescription,
   getProductStateLabel,
   mapChartDataToSkillData,
@@ -41,7 +42,12 @@ const insightIcons = [Sparkles, BrainCircuit, TrendingUp, Target]
 
 export function DashboardPage() {
   const { data, error, isLoading, refresh } = useApiResource(getDashboardData)
-  const { error: refreshError, isRefreshing, runRefresh } = useWorkspaceRefresh()
+  const {
+    error: refreshError,
+    isRefreshing,
+    runRefresh,
+    statusMessage,
+  } = useWorkspaceRefresh()
 
   const handleWorkspaceRefresh = async () => {
     await runRefresh()
@@ -60,7 +66,7 @@ export function DashboardPage() {
           title: 'Genome score',
           value:
             data.overview.genomeScore.value === null
-              ? '—'
+              ? '--'
               : `${data.overview.genomeScore.value}`,
           description:
             data.overview.genomeScore.generatedAt
@@ -139,6 +145,14 @@ export function DashboardPage() {
         <StateNotice
           description={refreshError}
           title="Workspace refresh needs attention"
+          tone="cyan"
+        />
+      ) : null}
+
+      {isRefreshing && statusMessage ? (
+        <StateNotice
+          description="Background sync and analysis jobs are running. This dashboard will refresh with the latest signals as soon as they finish."
+          title={statusMessage}
           tone="cyan"
         />
       ) : null}
@@ -298,7 +312,7 @@ export function DashboardPage() {
                       Velocity score
                     </p>
                     <p className="mt-2 font-display text-3xl font-bold text-white">
-                      {data.overview.learningVelocity.value ?? '—'}
+                      {data.overview.learningVelocity.value ?? '--'}
                     </p>
                   </div>
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
@@ -306,7 +320,9 @@ export function DashboardPage() {
                       Last analysis
                     </p>
                     <p className="mt-2 font-display text-3xl font-bold text-white">
-                      {data.meta.lastAnalysisAt ? formatShortDate(data.meta.lastAnalysisAt) : '—'}
+                      {data.meta.lastAnalysisAt
+                        ? formatShortDate(data.meta.lastAnalysisAt)
+                        : '--'}
                     </p>
                   </div>
                 </div>
@@ -400,15 +416,4 @@ export function DashboardPage() {
       ) : null}
     </div>
   )
-}
-
-function formatShortDate(value: string | null) {
-  if (!value) {
-    return '—'
-  }
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(value))
 }

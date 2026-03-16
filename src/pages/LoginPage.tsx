@@ -37,7 +37,7 @@ export function LoginPage() {
       {
         label: 'Syncing repository metadata',
         done: Boolean(githubAccount?.lastSyncedAt) && !isRefreshing,
-        active: isRefreshing && statusMessage === 'Syncing GitHub metadata',
+        active: isRefreshing && statusMessage !== 'Generating Developer Genome',
       },
       {
         label: 'Generating Developer Genome',
@@ -239,7 +239,7 @@ export function LoginPage() {
                 error
                   ? error
                   : isRefreshing
-                    ? 'DevGenome is syncing metadata and regenerating your latest analysis.'
+                    ? `${statusMessage ?? 'Preparing your workspace'}. DevGenome is running the live sync and analysis pipeline in the background.`
                     : authSuccess && status === 'loading'
                       ? 'Completing GitHub sign-in and restoring your authenticated workspace.'
                       : isAuthenticated

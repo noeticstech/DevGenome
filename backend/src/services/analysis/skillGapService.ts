@@ -7,7 +7,7 @@ import type {
   SkillScoringResult,
 } from './analysisTypes'
 import { getSupportedTargetRoles, humanizeCategory, normalizeTargetRole } from './analysisUtils'
-import { getInterviewReadinessLabel } from './fusion/fusionEngine'
+import { calculateRoleFusionSummary, getInterviewReadinessLabel } from './fusion'
 import type { FusedAnalysisSignals } from './fusion/fusionTypes'
 
 type RoleProfile = {
@@ -251,7 +251,7 @@ export function calculateSkillGapReports(input: {
   const reports = getSupportedTargetRoles().map((targetRole) => {
     const roleProfile = ROLE_PROFILES[targetRole]
 
-    const readinessScore = Math.round(
+    const skillMatchScore = Math.round(
       CATEGORY_KEYS.reduce((total, category) => {
         const currentScore = getScore(input.skillScores, category)
         const requiredScore = roleProfile.requiredScores[category]
@@ -259,6 +259,12 @@ export function calculateSkillGapReports(input: {
 
         return total + Math.min(currentScore / requiredScore, 1) * categoryWeight
       }, 0) * 100,
+    )
+
+    const roleFusion = calculateRoleFusionSummary(targetRole, input.fusion)
+    const readinessScore = Math.max(
+      0,
+      Math.min(100, skillMatchScore + roleFusion.adjustment),
     )
 
     const strongestAreas = CATEGORY_KEYS
@@ -300,8 +306,8 @@ export function calculateSkillGapReports(input: {
 
     const summary =
       missingSkills.length === 0
-        ? `${targetRole} readiness is strong based on current metadata-only analysis, with the clearest strengths in ${strongestAreas.join(', ')}.${interviewReadinessNote ? ` ${interviewReadinessNote}` : ''}`
-        : `${targetRole} readiness is ${readinessScore}%. Strongest areas are ${strongestAreas.join(', ') || 'still emerging'}, while the biggest gaps are ${missingSkills.join(', ')}.${interviewReadinessNote ? ` ${interviewReadinessNote}` : ''}`
+        ? `${targetRole} readiness is strong based on current metadata-only analysis, with the clearest strengths in ${strongestAreas.join(', ')}. ${roleFusion.explanation}${interviewReadinessNote ? ` ${interviewReadinessNote}` : ''}`
+        : `${targetRole} readiness is ${readinessScore}% (base match ${skillMatchScore}%, fusion adjustment ${roleFusion.adjustment >= 0 ? '+' : ''}${roleFusion.adjustment}%). Strongest areas are ${strongestAreas.join(', ') || 'still emerging'}, while the biggest gaps are ${missingSkills.join(', ')}. ${roleFusion.explanation}${interviewReadinessNote ? ` ${interviewReadinessNote}` : ''}`
 
     return {
       targetRole,
@@ -312,6 +318,7 @@ export function calculateSkillGapReports(input: {
       suggestedProjects,
       summary,
       interviewReadinessNote,
+      roleFusion: roleFusion,
     }
   })
 

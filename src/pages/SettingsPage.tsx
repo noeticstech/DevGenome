@@ -1,15 +1,15 @@
 import {
   AlertTriangle,
   Code2,
+  Copy,
   Download,
+  ExternalLink,
   Github,
   Laptop,
   LogOut,
-  MessageSquareMore,
   MoonStar,
   RefreshCw,
   ShieldCheck,
-  SunMedium,
   Trophy,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -32,11 +32,24 @@ import {
   getSettingsData,
   updateSettingsPreferences,
 } from '@/lib/api/settings'
+import {
+  linkCodeforcesAccount,
+  linkLeetcodeAccount,
+  triggerCodeforcesSync,
+  triggerLeetcodeSync,
+} from '@/lib/api/integrations'
+import { waitForBackgroundJobCompletion } from '@/lib/jobPolling'
+import { exportProfileData } from '@/lib/api/sharing'
 import type {
   SettingsResponse,
   ThemePreference,
   UpdateSettingsPreferencesPayload,
 } from '@/lib/api/types'
+import {
+  buildPublicProfilePreviewUrl,
+  copyTextToClipboard,
+  downloadJsonFile,
+} from '@/lib/productActions'
 import { formatDate, formatRelativeTime } from '@/lib/productPresentation'
 import { settingsAccentPalette } from '@/data/settings'
 
@@ -71,12 +84,6 @@ const themeOptions: Array<{
     label: 'System',
     description: 'Follow your OS preference.',
     icon: Laptop,
-  },
-  {
-    value: 'LIGHT',
-    label: 'Light',
-    description: 'A brighter workspace mode.',
-    icon: SunMedium,
   },
 ]
 
@@ -157,6 +164,97 @@ export function SettingsPage() {
 
   const handleConnectGithub = () => {
     window.location.assign(getGithubAuthStartUrl())
+  }
+
+  const handleManualProviderLink = async (provider: 'leetcode' | 'codeforces') => {
+    const account = data?.connectedAccounts.items.find((item) => item.provider === provider)
+    const inputLabel = provider === 'leetcode' ? 'username' : 'handle'
+    const suggestedValue = account?.username ?? ''
+    const enteredValue = window.prompt(
+      `Enter your ${provider === 'leetcode' ? 'LeetCode username' : 'Codeforces handle'} to link this account.`,
+      suggestedValue,
+    )
+
+    if (!enteredValue) {
+      return
+    }
+
+    const normalizedValue = enteredValue.trim()
+
+    if (!normalizedValue) {
+      return
+    }
+
+    setActiveAction(`${provider}_connect`)
+
+    try {
+      if (provider === 'leetcode') {
+        const linkResponse = await linkLeetcodeAccount(normalizedValue)
+        const syncResponse = await triggerLeetcodeSync()
+        const syncResult = await waitForBackgroundJobCompletion({
+          jobId: syncResponse.job.id,
+        })
+
+        await refresh()
+        await refreshAuth()
+
+        if (syncResult.outcome === 'failed') {
+          throw new Error(
+            syncResult.response.failure?.message ??
+              syncResult.response.job.lastError ??
+              'LeetCode sync failed after linking the account.',
+          )
+        }
+
+        setFeedback({
+          tone: 'cyan',
+          title: 'LeetCode linked',
+          description:
+            syncResult.outcome === 'timed_out'
+              ? `${linkResponse.message} Sync is still running in the background.`
+              : `${linkResponse.message} Problem-solving signals were refreshed successfully.`,
+        })
+
+        return
+      }
+
+      const linkResponse = await linkCodeforcesAccount(normalizedValue)
+      const syncResponse = await triggerCodeforcesSync()
+      const syncResult = await waitForBackgroundJobCompletion({
+        jobId: syncResponse.job.id,
+      })
+
+      await refresh()
+      await refreshAuth()
+
+      if (syncResult.outcome === 'failed') {
+        throw new Error(
+          syncResult.response.failure?.message ??
+            syncResult.response.job.lastError ??
+            'Codeforces sync failed after linking the account.',
+        )
+      }
+
+      setFeedback({
+        tone: 'cyan',
+        title: 'Codeforces linked',
+        description:
+          syncResult.outcome === 'timed_out'
+            ? `${linkResponse.message} Sync is still running in the background.`
+            : `${linkResponse.message} Competitive-programming signals were refreshed successfully.`,
+      })
+    } catch (caughtError) {
+      setFeedback({
+        tone: 'violet',
+        title: `Unable to link ${provider === 'leetcode' ? 'LeetCode' : 'Codeforces'}`,
+        description:
+          caughtError instanceof Error
+            ? caughtError.message
+            : `Please try the ${inputLabel} again in a moment.`,
+      })
+    } finally {
+      setActiveAction(null)
+    }
   }
 
   const handleDisconnectGithub = async () => {
@@ -253,6 +351,77 @@ export function SettingsPage() {
     } finally {
       setActiveAction(null)
     }
+  }
+
+  const handleExportProfile = async () => {
+    setActiveAction('export')
+
+    try {
+      const response = await exportProfileData()
+      const exportDate = response.export.exportedAt.slice(0, 10)
+      downloadJsonFile(`devgenome-profile-${exportDate}.json`, response)
+      setFeedback({
+        tone: 'cyan',
+        title: 'Profile export ready',
+        description: 'A JSON export of your current DevGenome profile was downloaded.',
+      })
+    } catch (caughtError) {
+      setFeedback({
+        tone: 'violet',
+        title: 'Unable to export profile data',
+        description:
+          caughtError instanceof Error
+            ? caughtError.message
+            : 'Please try again in a moment.',
+      })
+    } finally {
+      setActiveAction(null)
+    }
+  }
+
+  const handleCopyPublicProfileLink = async () => {
+    const previewUrl = buildPublicProfilePreviewUrl(data?.privacy.sharing.sharePath)
+
+    if (!previewUrl) {
+      setFeedback({
+        tone: 'violet',
+        title: 'Public profile is disabled',
+        description:
+          'Set profile visibility to Public and save settings to generate a shareable profile link.',
+      })
+      return
+    }
+
+    try {
+      await copyTextToClipboard(previewUrl)
+      setFeedback({
+        tone: 'cyan',
+        title: 'Public profile link copied',
+        description: previewUrl,
+      })
+    } catch {
+      setFeedback({
+        tone: 'violet',
+        title: 'Unable to copy the share link',
+        description: 'Please try again in a moment.',
+      })
+    }
+  }
+
+  const handleOpenPublicProfile = () => {
+    const previewUrl = buildPublicProfilePreviewUrl(data?.privacy.sharing.sharePath)
+
+    if (!previewUrl) {
+      setFeedback({
+        tone: 'violet',
+        title: 'Public profile is disabled',
+        description:
+          'Set profile visibility to Public and save settings to open a shareable public profile.',
+      })
+      return
+    }
+
+    window.open(previewUrl, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -352,7 +521,13 @@ export function SettingsPage() {
                         className="mt-5 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={
                           activeAction === 'disconnect' ||
-                          (!account.canConnect && !account.canDisconnect)
+                          activeAction === `${account.provider}_connect` ||
+                          (account.provider === 'geeksforgeeks' &&
+                            !account.canConnect &&
+                            !account.canDisconnect) ||
+                          (account.status === 'connected' &&
+                            !account.canDisconnect &&
+                            account.provider !== 'github')
                         }
                         onClick={() => {
                           if (account.canDisconnect && isGithub) {
@@ -362,6 +537,16 @@ export function SettingsPage() {
 
                           if (account.canConnect && isGithub) {
                             handleConnectGithub()
+                            return
+                          }
+
+                          if (account.canConnect && account.provider === 'leetcode') {
+                            void handleManualProviderLink('leetcode')
+                            return
+                          }
+
+                          if (account.canConnect && account.provider === 'codeforces') {
+                            void handleManualProviderLink('codeforces')
                           }
                         }}
                         type="button"
@@ -370,8 +555,15 @@ export function SettingsPage() {
                           ? activeAction === 'disconnect'
                             ? 'Disconnecting...'
                             : 'Disconnect GitHub'
+                          : activeAction === `${account.provider}_connect`
+                            ? 'Linking...'
+                          : account.status === 'connected' &&
+                              account.provider !== 'github'
+                            ? 'Linked'
                           : account.canConnect
-                            ? 'Connect'
+                            ? account.provider === 'github'
+                              ? 'Connect'
+                              : 'Link handle'
                             : 'Coming soon'}
                       </button>
                     </article>
@@ -390,7 +582,7 @@ export function SettingsPage() {
                     Account status
                   </p>
                   <p className="mt-3 font-display text-3xl font-bold text-white">
-                    {data.account.state.replace(/_/g, ' ')}
+                    {formatWorkspaceState(data.account.state)}
                   </p>
                   <p className="mt-2 text-sm text-ink-muted">
                     {data.account.connectedProviderCount} connected provider
@@ -641,11 +833,53 @@ export function SettingsPage() {
                     Repository metadata, contribution timing, and technology signals power your profile.
                   </p>
                 </article>
+                <article className="rounded-3xl border border-white/8 bg-white/[0.03] p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.05]">
+                      <ExternalLink className="h-5 w-5 text-cyan" />
+                    </div>
+                    <StatusBadge
+                      label={data.privacy.sharing.publicProfileEnabled ? 'Public' : 'Private'}
+                      tone={data.privacy.sharing.publicProfileEnabled ? 'cyan' : 'violet'}
+                    />
+                  </div>
+                  <h3 className="mt-5 font-display text-xl font-bold text-white">
+                    Public sharing
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-ink-muted">
+                    {data.privacy.sharing.message}
+                  </p>
+                  {data.privacy.sharing.publicProfileEnabled ? (
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        className={buttonClass}
+                        onClick={() => void handleCopyPublicProfileLink()}
+                        type="button"
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy share link
+                      </button>
+                      <button
+                        className={buttonClass}
+                        onClick={handleOpenPublicProfile}
+                        type="button"
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Preview public profile
+                      </button>
+                    </div>
+                  ) : null}
+                </article>
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
-                <button className={buttonClass} type="button">
+                <button
+                  className={buttonClass}
+                  disabled={activeAction === 'export'}
+                  onClick={() => void handleExportProfile()}
+                  type="button"
+                >
                   <Download className="mr-2 h-4 w-4" />
-                  Export data
+                  {activeAction === 'export' ? 'Exporting profile' : 'Export profile JSON'}
                 </button>
                 <button
                   className={buttonClass}
@@ -671,10 +905,12 @@ export function SettingsPage() {
                       : 'Not generated yet'}
                   </p>
                 </div>
-                <button className={`${buttonClass} w-full`} type="button">
-                  <MessageSquareMore className="mr-2 h-4 w-4" />
-                  Contact support
-                </button>
+                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4 text-sm text-ink-muted">
+                  <p className="font-semibold text-white">Support during the demo</p>
+                  <p className="mt-2 leading-6">
+                    Use the same channel that shared this build if you need help, account cleanup, or environment troubleshooting.
+                  </p>
+                </div>
                 <button
                   className={`${buttonClass} w-full`}
                   disabled={activeAction === 'logout'}
@@ -717,4 +953,11 @@ function buildDraftFromSettings(settings: SettingsResponse | null): SettingsDraf
     profileVisibility: settings?.privacy.profileVisibility ?? 'PRIVATE',
     metadataOnlyAnalysis: true,
   }
+}
+
+function formatWorkspaceState(state: SettingsResponse['account']['state']) {
+  return state
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }

@@ -47,9 +47,32 @@ export function classifyDeveloperArchetype(
   skillScores: SkillScoringResult,
   fusion: FusedAnalysisSignals,
 ): DeveloperArchetypeResult {
+  const hybridBuilderBonus =
+    fusion.builderStrength.score >= 70 && fusion.problemSolvingStrength.score >= 68
+      ? 5
+      : 0
+  const architectFusionBonus = clampScore(
+    scaleToRange(fusion.builderStrength.score, 100, 6) +
+      scaleToRange(fusion.problemSolvingStrength.score, 100, 4),
+    0,
+    10,
+  )
+  const problemSolverFusionBonus = clampScore(
+    scaleToRange(fusion.builderStrength.score, 100, 5) +
+      (fusion.sourceCoverage.problemSolvingSources.length > 1 ? 4 : 0),
+    0,
+    10,
+  )
+  const explorationFusionBonus = clampScore(
+    scaleToRange(fusion.sourceCoverage.connectedSources.length, 3, 6),
+    0,
+    6,
+  )
+
   const builderScore = clampScore(
     16 +
       fusion.builderStrength.score * 0.58 +
+      fusion.interviewReadiness.score * 0.06 +
       scaleToRange(
         getCoreScoreValue(skillScores, 'frontend') +
           getCoreScoreValue(skillScores, 'backend') +
@@ -57,7 +80,8 @@ export function classifyDeveloperArchetype(
         240,
         12,
       ) +
-      scaleToRange(signals.recentCommitCount, 80, 8),
+      scaleToRange(signals.recentCommitCount, 80, 8) +
+      hybridBuilderBonus,
   )
 
   const architectScore = clampScore(
@@ -67,7 +91,8 @@ export function classifyDeveloperArchetype(
       getCoreScoreValue(skillScores, 'devops') * 0.16 +
       getCoreScoreValue(skillScores, 'databases') * 0.14 +
       scaleToRange(signals.nonForkRepositoryCount, 8, 8) +
-      scaleToRange(signals.totalStars, 25, 6),
+      scaleToRange(signals.totalStars, 25, 6) +
+      architectFusionBonus,
   )
 
   const problemSolverScore = clampScore(
@@ -76,14 +101,16 @@ export function classifyDeveloperArchetype(
       fusion.interviewReadiness.score * 0.18 +
       getCoreScoreValue(skillScores, 'algorithms') * 0.14 +
       scaleToRange(signals.totalActiveWeeks, 16, 8) +
-      scaleToRange(getCoreScoreValue(skillScores, 'systemDesign'), 100, 6),
+      scaleToRange(getCoreScoreValue(skillScores, 'systemDesign'), 100, 6) +
+      problemSolverFusionBonus,
   )
 
   const explorerScore = clampScore(
     18 +
       fusion.explorationStrength.score * 0.6 +
       scaleToRange(signals.recentRepositoryCount, 6, 10) +
-      scaleToRange(signals.experimentationIndex, 20, 10),
+      scaleToRange(signals.experimentationIndex, 20, 10) +
+      explorationFusionBonus,
   )
 
   const fitScores: Record<DeveloperType, number> = {
@@ -125,7 +152,9 @@ export function classifyDeveloperArchetype(
       dominantSignals: [
         `${humanizeCategory('backend')} and ${humanizeCategory('systemDesign')} are among the strongest inferred skill areas.`,
         `${signals.systemDesignProjectCount} repositories show architecture or multi-layer system signals.`,
-        `${signals.devopsProjectCount} repositories add infrastructure depth to the overall profile.`,
+        fusion.problemSolvingStrength.score >= 62
+          ? `${signals.devopsProjectCount} repositories add infrastructure depth, while external problem-solving signals raise confidence that the systems thinking is not GitHub-only.`
+          : `${signals.devopsProjectCount} repositories add infrastructure depth to the overall profile.`,
       ],
       fitScores,
       sourceContributions: buildSourceContributions(fusion.categorySignals.systemDesign),
@@ -166,7 +195,7 @@ export function classifyDeveloperArchetype(
       fusion.sourceCoverage.connectedSources.length > 1
         ? `${fusion.sourceCoverage.connectedSources
             .map((source) => humanizeSource(source))
-            .join(', ')} together widen the evidence base beyond a single platform.`
+            .join(', ')} together widen the evidence base beyond a single platform and make experimentation signals more trustworthy.`
         : `${signals.recentLanguageAdoptions.length} recent language adoption signals suggest continued exploration.`,
     ],
     fitScores,

@@ -14,6 +14,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useApiResource } from '@/hooks/useApiResource'
 import { useWorkspaceRefresh } from '@/hooks/useWorkspaceRefresh'
 import { getGenomeData } from '@/lib/api/product'
+import { getDeveloperReportData } from '@/lib/api/reports'
 import {
   formatDate,
   getProductStateDescription,
@@ -36,11 +37,23 @@ const breakdownToneMap = {
 
 export function GenomePage() {
   const { data, error, isLoading, refresh } = useApiResource(getGenomeData)
-  const { error: refreshError, isRefreshing, runRefresh } = useWorkspaceRefresh()
+  const {
+    data: reportData,
+    error: reportError,
+    isLoading: isReportLoading,
+    refresh: refreshReport,
+  } = useApiResource(() => getDeveloperReportData('genome_summary'))
+  const {
+    error: refreshError,
+    isRefreshing,
+    runRefresh,
+    statusMessage,
+  } = useWorkspaceRefresh()
 
   const handleWorkspaceRefresh = async () => {
     await runRefresh()
     await refresh()
+    await refreshReport()
   }
 
   const flattenedStrands =
@@ -99,6 +112,14 @@ export function GenomePage() {
         />
       ) : null}
 
+      {isRefreshing && statusMessage ? (
+        <StateNotice
+          description="Background sync and analysis jobs are running. This genome view will refresh with the latest narrative and score breakdown when they finish."
+          title={statusMessage}
+          tone="cyan"
+        />
+      ) : null}
+
       {isLoading ? <PageLoadingState /> : null}
 
       {!isLoading && error ? (
@@ -146,7 +167,10 @@ export function GenomePage() {
                   <StatusBadge label={data.archetype.label} tone="violet" />
                 ) : null
               }
-              subtitle={data.summary.subtitle ?? 'Archetype classification is generated from your stored metadata.'}
+              subtitle={
+                data.summary.subtitle ??
+                'Archetype classification is generated from your stored metadata.'
+              }
               title={data.archetype.label ?? 'Developer personality'}
             >
               <p className="text-sm leading-7 text-ink-muted">
@@ -156,11 +180,11 @@ export function GenomePage() {
               <div className="mt-6">
                 <InfoRow
                   label="Strongest category"
-                  value={data.supportingMeta.strongestCategories[0] ?? '—'}
+                  value={data.supportingMeta.strongestCategories[0] ?? '--'}
                 />
                 <InfoRow
                   label="Growth area"
-                  value={data.supportingMeta.weakestCategories[0] ?? '—'}
+                  value={data.supportingMeta.weakestCategories[0] ?? '--'}
                 />
                 <InfoRow
                   label="Generated"
@@ -311,6 +335,74 @@ export function GenomePage() {
                 </div>
               </article>
             </div>
+          </SectionCard>
+
+          <SectionCard
+            subtitle="A polished narrative interpretation grounded in the current deterministic genome output."
+            title="Genome summary report"
+          >
+            {isReportLoading ? (
+              <div className="text-sm text-ink-muted">Generating genome report...</div>
+            ) : reportError ? (
+              <EmptyState
+                description={reportError.message}
+                title="Genome report is unavailable right now"
+              />
+            ) : reportData?.meta.availability === 'ready' && reportData.report.summary ? (
+              <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr_0.9fr]">
+                <article className="rounded-[30px] border border-white/8 bg-white/[0.03] p-5">
+                  <StatusBadge label={reportData.report.title ?? 'Genome report'} tone="cyan" />
+                  <p className="mt-5 font-display text-2xl font-bold text-white">
+                    {reportData.report.subtitle ?? 'Narrative summary'}
+                  </p>
+                  <p className="mt-4 text-sm leading-7 text-ink-muted">
+                    {reportData.report.summary}
+                  </p>
+                </article>
+
+                <article className="rounded-[30px] border border-white/8 bg-white/[0.03] p-5">
+                  <p className="text-xs uppercase tracking-[0.22em] text-ink-soft">
+                    Strongest signals
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {reportData.report.strengths.length ? (
+                      reportData.report.strengths.slice(0, 3).map((item) => (
+                        <SkillTag key={item} label={item} tone="cyan" />
+                      ))
+                    ) : (
+                      <p className="text-sm leading-7 text-ink-muted">
+                        No strengths were highlighted in this report yet.
+                      </p>
+                    )}
+                  </div>
+                </article>
+
+                <article className="rounded-[30px] border border-white/8 bg-white/[0.03] p-5">
+                  <p className="text-xs uppercase tracking-[0.22em] text-ink-soft">
+                    Next steps
+                  </p>
+                  <div className="mt-4 space-y-3">
+                    {reportData.report.nextSteps.length ? (
+                      reportData.report.nextSteps.slice(0, 3).map((item) => (
+                        <SkillTag key={item} label={item} tone="violet" />
+                      ))
+                    ) : (
+                      <p className="text-sm leading-7 text-ink-muted">
+                        Next-step guidance will appear after more analysis signals accumulate.
+                      </p>
+                    )}
+                  </div>
+                </article>
+              </div>
+            ) : (
+              <EmptyState
+                description={
+                  reportData?.emptyMessage ??
+                  'Genome report text will appear here when AI reporting is available.'
+                }
+                title="Genome report not ready yet"
+              />
+            )}
           </SectionCard>
         </>
       ) : null}
