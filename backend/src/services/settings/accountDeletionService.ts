@@ -1,8 +1,11 @@
 import { prisma } from '../../lib/prisma'
+import { logger } from '../../lib/logger'
 import { AppError } from '../../utils/app-error'
 import { invalidateUserRuntimeCache } from '../cache'
 
 export async function deleteUserAccount(userId: string) {
+  logger.warn('User account deletion requested', { userId })
+
   await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: userId },
@@ -19,4 +22,6 @@ export async function deleteUserAccount(userId: string) {
   })
 
   invalidateUserRuntimeCache(userId)
+
+  logger.warn('User account deletion completed', { userId })
 }

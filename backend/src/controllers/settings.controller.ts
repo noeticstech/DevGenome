@@ -5,7 +5,10 @@ import type {
   SettingsResponse,
   UpdateSettingsPreferencesResponse,
 } from '../types/api/settings'
-import { clearSessionCookie } from '../services/auth/session.service'
+import {
+  clearSessionCookie,
+  setSessionClearedResponseHeaders,
+} from '../services/auth/session.service'
 import { presentDeleteHistoryResult, presentDisconnectGithubResult } from '../presenters/settingsPresenter'
 import { deleteUserHistory } from '../services/settings/historyDeletionService'
 import { disconnectGithubForUser } from '../services/settings/githubDisconnectService'
@@ -54,6 +57,7 @@ export const disconnectGithub = asyncHandler<
 >(async (_req, res) => {
   const result = await disconnectGithubForUser(res.locals.session.userId)
   clearSessionCookie(res)
+  setSessionClearedResponseHeaders(res)
   res.status(200).json(presentDisconnectGithubResult(result))
 })
 

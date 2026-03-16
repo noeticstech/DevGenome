@@ -8,6 +8,7 @@ import {
   createSessionToken,
   getOAuthStateCookieName,
   getSessionCookieName,
+  setSessionClearedResponseHeaders,
   setOAuthStateCookie,
   setSessionCookie,
   verifyOAuthState,
@@ -17,6 +18,7 @@ import { completeGitHubAuthentication, getAuthenticatedUser } from '../services/
 import { getCookie } from '../utils/cookie'
 import { AppError } from '../utils/app-error'
 import { asyncHandler } from '../utils/async-handler'
+import { env } from '../config/env'
 
 export const startGitHubAuth: RequestHandler = (_req, res) => {
   const state = createOAuthState()
@@ -49,7 +51,7 @@ export const handleGitHubCallback: RequestHandler = asyncHandler(async (req, res
   clearOAuthStateCookie(res)
   setSessionCookie(res, signedSessionToken)
 
-  const successUrl = new URL('/login', `${req.protocol}://${req.get('host')}`)
+  const successUrl = new URL('/login', env.APP_ORIGIN)
   successUrl.searchParams.set('auth', 'success')
   successUrl.searchParams.set('provider', 'github')
   successUrl.searchParams.set('username', user.username ?? user.displayName ?? 'developer')
@@ -75,6 +77,7 @@ export const getCurrentUser: RequestHandler = asyncHandler(async (req, res) => {
 export const logout: RequestHandler = (_req, res) => {
   clearOAuthStateCookie(res)
   clearSessionCookie(res)
+  setSessionClearedResponseHeaders(res)
 
   res.status(200).json({
     authenticated: false,

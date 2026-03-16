@@ -9,7 +9,7 @@ import {
   exchangeCodeForAccessToken,
   fetchGitHubIdentity,
 } from '../github/github-oauth.service'
-import { env } from '../../config/env'
+import { getTokenEncryptionSecret } from '../../config/env'
 
 const authenticatedUserInclude = {
   connectedAccounts: {
@@ -32,6 +32,20 @@ export interface AuthenticatedGitHubAccountContext {
   providerUserId: string
   username: string
   accessToken: string
+}
+
+function decryptProviderTokenOrThrow(value: string) {
+  try {
+    return decryptSecret(value, getTokenEncryptionSecret())
+  } catch (error) {
+    throw new AppError(503, 'Stored provider credentials could not be decrypted', {
+      category: 'auth',
+      code: 'PROVIDER_TOKEN_DECRYPT_FAILED',
+      retryable: false,
+      exposeMessage: false,
+      cause: error,
+    })
+  }
 }
 
 function toAuthenticatedUserResponse(
@@ -142,9 +156,12 @@ export async function completeGitHubAuthentication(input: {
 }> {
   const tokenResponse = await exchangeCodeForAccessToken(input.code)
   const identity = await fetchGitHubIdentity(tokenResponse.access_token)
-  const encryptedAccessToken = encryptSecret(tokenResponse.access_token, env.SESSION_SECRET)
+  const encryptedAccessToken = encryptSecret(
+    tokenResponse.access_token,
+    getTokenEncryptionSecret(),
+  )
   const encryptedRefreshToken = tokenResponse.refresh_token
-    ? encryptSecret(tokenResponse.refresh_token, env.SESSION_SECRET)
+    ? encryptSecret(tokenResponse.refresh_token, getTokenEncryptionSecret())
     : null
 
   const result = await prisma.$transaction(async (tx) => {
@@ -268,7 +285,7 @@ export async function getAuthenticatedGitHubAccountContext(
     connectedAccountId: connectedAccount.id,
     providerUserId: connectedAccount.providerUserId,
     username: connectedAccount.username,
-    accessToken: decryptSecret(connectedAccount.accessTokenEncrypted, env.SESSION_SECRET),
+    accessToken: decryptProviderTokenOrThrow(connectedAccount.accessTokenEncrypted),
   }
 }
 
@@ -302,7 +319,7 @@ export async function getGitHubAccountContextForUserId(
     connectedAccountId: connectedAccount.id,
     providerUserId: connectedAccount.providerUserId,
     username: connectedAccount.username,
-    accessToken: decryptSecret(connectedAccount.accessTokenEncrypted, env.SESSION_SECRET),
+    accessToken: decryptProviderTokenOrThrow(connectedAccount.accessTokenEncrypted),
   }
 }
 

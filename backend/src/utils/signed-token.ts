@@ -22,9 +22,9 @@ export function verifySignedToken<T extends { exp: number }>(
   token: string,
   secret: string,
 ): T | null {
-  const [encodedPayload, providedSignature] = token.split('.')
+  const [encodedPayload, providedSignature, ...extraParts] = token.split('.')
 
-  if (!encodedPayload || !providedSignature) {
+  if (!encodedPayload || !providedSignature || extraParts.length > 0) {
     return null
   }
 
@@ -43,7 +43,13 @@ export function verifySignedToken<T extends { exp: number }>(
     return null
   }
 
-  const payload = JSON.parse(base64UrlDecode(encodedPayload)) as T
+  let payload: T
+
+  try {
+    payload = JSON.parse(base64UrlDecode(encodedPayload)) as T
+  } catch {
+    return null
+  }
 
   if (payload.exp * 1000 < Date.now()) {
     return null

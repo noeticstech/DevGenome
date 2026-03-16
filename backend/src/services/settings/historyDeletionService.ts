@@ -1,8 +1,11 @@
 import { prisma } from '../../lib/prisma'
+import { logger } from '../../lib/logger'
 import { invalidateUserRuntimeCache } from '../cache'
 import type { HistoryDeletionResult } from './settingsTypes'
 
 export async function deleteUserHistory(userId: string): Promise<HistoryDeletionResult> {
+  logger.warn('User history deletion requested', { userId })
+
   const result = await prisma.$transaction(async (tx) => {
     const [
       repositories,
@@ -122,6 +125,12 @@ export async function deleteUserHistory(userId: string): Promise<HistoryDeletion
   })
 
   invalidateUserRuntimeCache(userId)
+
+  logger.warn('User history deletion completed', {
+    userId,
+    status: result.status,
+    deletedCounts: result.deletedCounts,
+  })
 
   return result
 }

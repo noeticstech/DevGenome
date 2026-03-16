@@ -1,5 +1,7 @@
 import crypto from 'node:crypto'
 
+const SECRET_FORMAT_VERSION = 'v1'
+
 function createEncryptionKey(secret: string) {
   return crypto.createHash('sha256').update(secret).digest()
 }
@@ -12,11 +14,20 @@ export function encryptSecret(value: string, secret: string) {
   const encrypted = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()])
   const authTag = cipher.getAuthTag()
 
-  return [iv.toString('base64url'), authTag.toString('base64url'), encrypted.toString('base64url')].join('.')
+  return [
+    SECRET_FORMAT_VERSION,
+    iv.toString('base64url'),
+    authTag.toString('base64url'),
+    encrypted.toString('base64url'),
+  ].join('.')
 }
 
 export function decryptSecret(value: string, secret: string) {
-  const [ivPart, authTagPart, encryptedPart] = value.split('.')
+  const parts = value.split('.')
+  const [ivPart, authTagPart, encryptedPart] =
+    parts.length === 4 && parts[0] === SECRET_FORMAT_VERSION
+      ? parts.slice(1)
+      : parts
 
   if (!ivPart || !authTagPart || !encryptedPart) {
     throw new Error('Encrypted secret has invalid format')

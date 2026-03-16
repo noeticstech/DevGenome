@@ -7,18 +7,29 @@ import { env } from '../../config/env'
 import type { OAuthStatePayload, SessionPayload } from '../../types/auth'
 import { createSignedToken, verifySignedToken } from '../../utils/signed-token'
 
-const SESSION_COOKIE_NAME = 'devgenome_session'
-const OAUTH_STATE_COOKIE_NAME = 'devgenome_oauth_state'
+const SESSION_COOKIE_NAME = getCookieNameWithPrefix('devgenome_session')
+const OAUTH_STATE_COOKIE_NAME = getCookieNameWithPrefix('devgenome_oauth_state')
 const SESSION_TTL_SECONDS = env.SESSION_TTL_HOURS * 60 * 60
 const OAUTH_STATE_TTL_SECONDS = 10 * 60
+
+function getCookieNameWithPrefix(baseName: string) {
+  if (env.NODE_ENV === 'production' && !env.SESSION_COOKIE_DOMAIN) {
+    return `__Host-${baseName}`
+  }
+
+  return baseName
+}
 
 function getCookieOptions(maxAgeMs: number): CookieOptions {
   return {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: env.NODE_ENV === 'production',
+    sameSite: env.SESSION_COOKIE_SAME_SITE,
+    secure:
+      env.NODE_ENV === 'production' || env.SESSION_COOKIE_SAME_SITE === 'none',
+    domain: env.SESSION_COOKIE_DOMAIN,
     path: '/',
     maxAge: maxAgeMs,
+    priority: 'high',
   }
 }
 
@@ -35,7 +46,13 @@ export function createOAuthState() {
 }
 
 export function verifyOAuthState(value: string) {
-  return verifySignedToken<OAuthStatePayload>(value, env.SESSION_SECRET)
+  const payload = verifySignedToken<OAuthStatePayload>(value, env.SESSION_SECRET)
+
+  if (payload?.type !== 'oauth_state') {
+    return null
+  }
+
+  return payload
 }
 
 export function setOAuthStateCookie(res: Response, value: string) {
@@ -69,7 +86,13 @@ export function createSessionToken(input: {
 }
 
 export function verifySessionToken(value: string) {
-  return verifySignedToken<SessionPayload>(value, env.SESSION_SECRET)
+  const payload = verifySignedToken<SessionPayload>(value, env.SESSION_SECRET)
+
+  if (payload?.type !== 'session') {
+    return null
+  }
+
+  return payload
 }
 
 export function setSessionCookie(res: Response, token: string) {
@@ -82,6 +105,11 @@ export function setSessionCookie(res: Response, token: string) {
 
 export function clearSessionCookie(res: Response) {
   res.clearCookie(SESSION_COOKIE_NAME, getCookieOptions(0))
+}
+
+export function setSessionClearedResponseHeaders(res: Response) {
+  res.setHeader('Clear-Site-Data', '"cookies", "storage"')
+  res.setHeader('Cache-Control', 'no-store')
 }
 
 export function getSessionCookieName() {

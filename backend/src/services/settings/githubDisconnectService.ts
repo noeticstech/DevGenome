@@ -1,12 +1,15 @@
 import { AccountProvider } from '@prisma/client'
 
 import { prisma } from '../../lib/prisma'
+import { logger } from '../../lib/logger'
 import { invalidateUserRuntimeCache } from '../cache'
 import type { GithubDisconnectResult } from './settingsTypes'
 
 export async function disconnectGithubForUser(
   userId: string,
 ): Promise<GithubDisconnectResult> {
+  logger.warn('GitHub disconnect requested', { userId })
+
   const result = await prisma.$transaction(async (tx) => {
     const [githubAccount, repositoriesCount, genomeProfilesCount, skillGapReportsCount, timelineEventsCount] =
       await Promise.all([
@@ -70,6 +73,13 @@ export async function disconnectGithubForUser(
   })
 
   invalidateUserRuntimeCache(userId)
+
+  logger.warn('GitHub disconnect completed', {
+    userId,
+    status: result.status,
+    repositoryCount: result.repositoryCount,
+    analysisRecords: result.analysisRecords,
+  })
 
   return result
 }
