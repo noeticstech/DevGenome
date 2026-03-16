@@ -13,6 +13,8 @@ interface RadarSkillChartProps {
 }
 
 export function RadarSkillChart({ data }: RadarSkillChartProps) {
+  const hasBenchmark = data.some((item) => typeof item.benchmark === 'number')
+
   return (
     <div className="h-[320px] w-full">
       <ResponsiveContainer>
@@ -22,13 +24,15 @@ export function RadarSkillChart({ data }: RadarSkillChartProps) {
             dataKey="label"
             tick={{ fill: '#a89bc9', fontSize: 12 }}
           />
-          <Radar
-            dataKey="benchmark"
-            fill="rgba(34,211,238,0.08)"
-            fillOpacity={0.9}
-            stroke="#22d3ee"
-            strokeOpacity={0.7}
-          />
+          {hasBenchmark ? (
+            <Radar
+              dataKey="benchmark"
+              fill="rgba(34,211,238,0.08)"
+              fillOpacity={0.9}
+              stroke="#22d3ee"
+              strokeOpacity={0.7}
+            />
+          ) : null}
           <Radar
             dataKey="value"
             fill="rgba(168,85,247,0.26)"

@@ -1,16 +1,13 @@
 import {
-  Bell,
-  Binary,
   ChartColumnIncreasing,
   Dna,
   LayoutDashboard,
   Settings,
-  Sparkles,
   Target,
   TrendingUp,
 } from 'lucide-react'
 
-import type { NavItem, RouteMeta, UserIdentity } from '@/types'
+import type { NavItem, RouteMeta } from '@/types'
 
 export const appNavigation: NavItem[] = [
   {
@@ -51,15 +48,6 @@ export const appNavigation: NavItem[] = [
     description: 'Profile, privacy, and preferences',
   },
 ]
-
-export const appUser: UserIdentity = {
-  name: 'Alex Rivera',
-  role: 'Senior Full Stack Engineer',
-  level: 'Genome score 74',
-  initials: 'AR',
-  focus: 'Builder archetype',
-  syncLabel: 'Metadata-only analysis active',
-}
 
 export const marketingLinks = [
   { label: 'Product', href: '#product' },
@@ -105,9 +93,3 @@ export const routeMeta: Record<string, RouteMeta> = {
     searchPlaceholder: 'Search settings or preferences...',
   },
 }
-
-export const sidebarFooterHighlights = [
-  { label: 'Source code storage', value: 'Disabled', icon: Binary },
-  { label: 'Signal confidence', value: '98.4%', icon: Sparkles },
-  { label: 'Unread alerts', value: '3', icon: Bell },
-]

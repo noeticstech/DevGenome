@@ -2,8 +2,13 @@ import { Bell, Search } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { appNavigation, appUser } from '@/data/app'
+import { useAuth } from '@/hooks/useAuth'
+import { appNavigation } from '@/data/app'
 import { cn } from '@/lib/cn'
+import {
+  buildSidebarIdentity,
+  formatRelativeTime,
+} from '@/lib/productPresentation'
 import type { RouteMeta } from '@/types'
 
 interface AppTopbarProps {
@@ -11,6 +16,13 @@ interface AppTopbarProps {
 }
 
 export function AppTopbar({ meta }: AppTopbarProps) {
+  const { user } = useAuth()
+  const identity = buildSidebarIdentity(user ?? {})
+  const githubAccount = user?.connectedAccounts.find((account) => account.provider === 'GITHUB')
+  const syncLabel = githubAccount?.lastSyncedAt
+    ? `Last sync ${formatRelativeTime(githubAccount.lastSyncedAt)}`
+    : identity.syncLabel
+
   return (
     <header className="sticky top-0 z-30 border-b border-white/6 bg-canvas/70 backdrop-blur-2xl">
       <div className="px-4 py-4 sm:px-6 lg:px-8">
@@ -47,19 +59,21 @@ export function AppTopbar({ meta }: AppTopbarProps) {
           </div>
           <div className="flex items-center justify-between gap-4 xl:justify-end">
             <div className="hidden sm:block">
-              <StatusBadge label={appUser.syncLabel} tone="cyan" />
+              <StatusBadge label={syncLabel} tone="cyan" />
             </div>
             <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-ink-muted transition hover:text-white">
               <Bell className="h-5 w-5" />
-              <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-orange" />
+              {githubAccount ? (
+                <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-cyan" />
+              ) : null}
             </button>
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-white">{appUser.name}</p>
-                <p className="text-xs text-ink-soft">{appUser.role}</p>
+                <p className="text-sm font-semibold text-white">{identity.name}</p>
+                <p className="text-xs text-ink-soft">{identity.role}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-cyan text-sm font-bold text-white">
-                {appUser.initials}
+                {identity.initials}
               </div>
             </div>
           </div>

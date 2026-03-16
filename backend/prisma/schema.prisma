@@ -1,0 +1,460 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountProvider {
+  GITHUB
+  LEETCODE
+  CODEFORCES
+}
+
+enum RepositoryVisibility {
+  PUBLIC
+  PRIVATE
+  INTERNAL
+}
+
+enum CommitBucket {
+  DAY
+  WEEK
+  MONTH
+}
+
+enum DeveloperType {
+  BUILDER
+  ARCHITECT
+  PROBLEM_SOLVER
+  EXPLORER
+}
+
+enum LearningVelocity {
+  LOW
+  MODERATE
+  HIGH
+  ACCELERATING
+}
+
+enum BackgroundJobType {
+  GITHUB_SYNC
+  LEETCODE_SYNC
+  CODEFORCES_SYNC
+  USER_ANALYSIS
+}
+
+enum BackgroundJobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum BackgroundJobTrigger {
+  MANUAL
+  SCHEDULED
+  CHAINED
+}
+
+enum TimelineEventType {
+  REPOSITORY_MILESTONE
+  CONTRIBUTION_MILESTONE
+  STACK_ADOPTION
+  SKILL_MILESTONE
+  ROLE_EVOLUTION
+  ANALYSIS_MILESTONE
+}
+
+enum ThemePreference {
+  DARK
+  SYSTEM
+}
+
+enum DashboardLayout {
+  DETAILED
+  COMPACT
+}
+
+enum ProfileVisibility {
+  PRIVATE
+  TEAM
+  PUBLIC
+}
+
+enum LeetCodeTopicCategory {
+  FUNDAMENTAL
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id                String             @id @default(cuid())
+  email             String?            @unique
+  displayName       String?
+  username          String?
+  avatarUrl         String?
+  bio               String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  connectedAccounts ConnectedAccount[]
+  repositories      Repository[]
+  commitSummaries   CommitSummary[]
+  languageStats     LanguageStat[]
+  genomeProfiles    GenomeProfile[]
+  skillGapReports   SkillGapReport[]
+  timelineEvents    TimelineEvent[]
+  backgroundJobs    BackgroundJob[]
+  preference        UserPreference?
+  leetcodeProfile   LeetCodeProfile?
+  codeforcesProfile CodeforcesProfile?
+
+  @@index([username])
+}
+
+model ConnectedAccount {
+  id                    String             @id @default(cuid())
+  userId                String
+  provider              AccountProvider
+  providerUserId        String
+  username              String
+  profileUrl            String?
+  avatarUrl             String?
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  scope                 String?
+  lastSyncedAt          DateTime?
+  disconnectedAt        DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositories          Repository[]
+  leetcodeProfile       LeetCodeProfile?
+  codeforcesProfile     CodeforcesProfile?
+
+  @@unique([provider, providerUserId])
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model CodeforcesProfile {
+  id                         String                    @id @default(cuid())
+  userId                     String                    @unique
+  connectedAccountId         String                    @unique
+  handle                     String
+  displayName                String?
+  profileUrl                 String
+  avatarUrl                  String?
+  rank                       String?
+  maxRank                    String?
+  currentRating              Int?
+  maxRating                  Int?
+  contribution               Int?
+  friendOfCount              Int?
+  organization               String?
+  country                    String?
+  city                       String?
+  registrationAt             DateTime?
+  lastOnlineAt               DateTime?
+  totalContests              Int                       @default(0)
+  recentContests             Int                       @default(0)
+  totalSolvedProblems        Int                       @default(0)
+  acceptedSubmissionCount    Int                       @default(0)
+  recentAcceptedProblems     Int                       @default(0)
+  recentAcceptedSubmissions  Int                       @default(0)
+  tagBreadth                 Int                       @default(0)
+  averageSolvedProblemRating Float?
+  maxSolvedProblemRating     Int?
+  syncedAt                   DateTime?
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+  user                       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectedAccount           ConnectedAccount          @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+  contestResults             CodeforcesContestResult[]
+  tagStats                   CodeforcesTagStat[]
+
+  @@index([handle])
+  @@index([syncedAt])
+}
+
+model CodeforcesContestResult {
+  id               String            @id @default(cuid())
+  profileId        String
+  contestId        Int
+  contestName      String
+  rank             Int
+  oldRating        Int
+  newRating        Int
+  ratingDelta      Int
+  ratingUpdateTime DateTime
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  profile          CodeforcesProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, contestId])
+  @@index([ratingUpdateTime])
+}
+
+model CodeforcesTagStat {
+  id                         String            @id @default(cuid())
+  profileId                  String
+  tagName                    String
+  solvedCount                Int               @default(0)
+  averageSolvedProblemRating Float?
+  maxSolvedProblemRating     Int?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  profile                    CodeforcesProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, tagName])
+}
+
+model LeetCodeProfile {
+  id                    String                 @id @default(cuid())
+  userId                String                 @unique
+  connectedAccountId    String                 @unique
+  username              String
+  displayName           String?
+  profileUrl            String
+  avatarUrl             String?
+  realName              String?
+  aboutMe               String?
+  countryName           String?
+  company               String?
+  school                String?
+  ranking               Int?
+  reputation            Int?
+  totalSolved           Int                    @default(0)
+  easySolved            Int                    @default(0)
+  mediumSolved          Int                    @default(0)
+  hardSolved            Int                    @default(0)
+  currentStreak         Int                    @default(0)
+  totalActiveDays       Int                    @default(0)
+  activeYears           Int[]                  @default([])
+  badgesCount           Int                    @default(0)
+  contestRating         Float?
+  contestGlobalRanking  Int?
+  contestTopPercentage  Float?
+  attendedContestsCount Int?
+  syncedAt              DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectedAccount      ConnectedAccount       @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+  topicStats            LeetCodeTopicStat[]
+  languageStats         LeetCodeLanguageStat[]
+
+  @@index([username])
+  @@index([syncedAt])
+}
+
+model LeetCodeTopicStat {
+  id             String                @id @default(cuid())
+  profileId      String
+  category       LeetCodeTopicCategory
+  topicName      String
+  problemsSolved Int                   @default(0)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  profile        LeetCodeProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, topicName])
+  @@index([category])
+}
+
+model LeetCodeLanguageStat {
+  id             String          @id @default(cuid())
+  profileId      String
+  languageName   String
+  problemsSolved Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  profile        LeetCodeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, languageName])
+}
+
+model Repository {
+  id                 String               @id @default(cuid())
+  userId             String
+  connectedAccountId String
+  provider           AccountProvider      @default(GITHUB)
+  providerRepoId     String
+  name               String
+  fullName           String
+  description        String?
+  isFork             Boolean              @default(false)
+  isArchived         Boolean              @default(false)
+  primaryLanguage    String?
+  defaultBranch      String?
+  visibility         RepositoryVisibility @default(PUBLIC)
+  starsCount         Int                  @default(0)
+  forksCount         Int                  @default(0)
+  openIssuesCount    Int                  @default(0)
+  repoUrl            String
+  topics             String[]             @default([])
+  providerCreatedAt  DateTime?
+  providerUpdatedAt  DateTime?
+  lastPushedAt       DateTime?
+  syncedAt           DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectedAccount   ConnectedAccount     @relation(fields: [connectedAccountId], references: [id], onDelete: Cascade)
+  commitSummaries    CommitSummary[]
+  languageStats      LanguageStat[]
+
+  @@unique([provider, providerRepoId])
+  @@index([userId])
+  @@index([connectedAccountId])
+  @@index([fullName])
+  @@index([syncedAt])
+}
+
+model CommitSummary {
+  id            String       @id @default(cuid())
+  userId        String
+  repositoryId  String
+  bucketType    CommitBucket
+  bucketStart   DateTime
+  bucketEnd     DateTime
+  commitCount   Int          @default(0)
+  additionCount Int          @default(0)
+  deletionCount Int          @default(0)
+  activeDays    Int          @default(0)
+  syncedAt      DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository    Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, bucketType, bucketStart])
+  @@index([userId, bucketType, bucketStart])
+  @@index([repositoryId, bucketStart])
+}
+
+model LanguageStat {
+  id           String     @id @default(cuid())
+  userId       String
+  repositoryId String
+  languageName String
+  bytesCount   Int        @default(0)
+  percentage   Float      @default(0)
+  syncedAt     DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, languageName])
+  @@index([userId, languageName])
+}
+
+model GenomeProfile {
+  id                 String           @id @default(cuid())
+  userId             String
+  overallScore       Int
+  algorithmsScore    Int
+  backendScore       Int
+  frontendScore      Int
+  databaseScore      Int
+  devopsScore        Int
+  systemDesignScore  Int
+  securityScore      Int
+  collaborationScore Int
+  developerType      DeveloperType
+  learningVelocity   LearningVelocity
+  summary            String?
+  generatedAt        DateTime         @default(now())
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
+}
+
+model SkillGapReport {
+  id                  String   @id @default(cuid())
+  userId              String
+  targetRole          String
+  matchScore          Int
+  summary             String?
+  missingSkills       String[] @default([])
+  learningSuggestions String[] @default([])
+  recommendedProjects String[] @default([])
+  generatedAt         DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, targetRole])
+  @@index([userId, generatedAt])
+}
+
+model TimelineEvent {
+  id          String            @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  eventDate   DateTime
+  eventType   TimelineEventType
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventDate])
+  @@index([userId, eventType])
+}
+
+model UserPreference {
+  userId                    String            @id
+  theme                     ThemePreference   @default(DARK)
+  accentColor               String            @default("#a855f7")
+  dashboardLayout           DashboardLayout   @default(DETAILED)
+  compactDashboardEnabled   Boolean           @default(false)
+  genomeScoreHeatmapEnabled Boolean           @default(true)
+  weeklySummaryEnabled      Boolean           @default(true)
+  learningProgressEnabled   Boolean           @default(false)
+  skillGapAlertsEnabled     Boolean           @default(true)
+  productUpdatesEnabled     Boolean           @default(true)
+  profileVisibility         ProfileVisibility @default(PRIVATE)
+  metadataOnlyAnalysis      Boolean           @default(true)
+  sourceCodeStorageDisabled Boolean           @default(true)
+  targetRole                String?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+  user                      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BackgroundJob {
+  id                 String               @id @default(cuid())
+  userId             String
+  type               BackgroundJobType
+  status             BackgroundJobStatus  @default(QUEUED)
+  trigger            BackgroundJobTrigger @default(MANUAL)
+  connectedAccountId String?
+  dedupeKey          String?
+  sourceJobId        String?
+  payload            Json?
+  result             Json?
+  attempts           Int                  @default(0)
+  maxAttempts        Int                  @default(3)
+  scheduledFor       DateTime             @default(now())
+  startedAt          DateTime?
+  completedAt        DateTime?
+  failedAt           DateTime?
+  lastError          String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledFor])
+  @@index([userId, createdAt])
+  @@index([userId, type, status])
+  @@index([type, status])
+  @@index([dedupeKey])
+}

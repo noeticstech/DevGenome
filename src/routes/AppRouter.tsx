@@ -1,8 +1,9 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '@/components/layout/AppLayout'
 import { MarketingLayout } from '@/components/layout/MarketingLayout'
+import { useAuth } from '@/hooks/useAuth'
 
 const LandingPage = lazy(async () => ({
   default: (await import('@/pages/LandingPage')).LandingPage,
@@ -40,6 +41,20 @@ function RouteFallback() {
   )
 }
 
+function ProtectedRoutes() {
+  const { isAuthenticated, status } = useAuth()
+
+  if (status === 'loading') {
+    return <RouteFallback />
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate replace to="/login" />
+  }
+
+  return <Outlet />
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -51,13 +66,15 @@ export function AppRouter() {
           <Route element={<AppLayout compact />}>
             <Route element={<LoginPage />} path="/login" />
           </Route>
-          <Route element={<AppLayout />}>
-            <Route element={<DashboardPage />} path="/dashboard" />
-            <Route element={<GenomePage />} path="/genome" />
-            <Route element={<ActivityPage />} path="/activity" />
-            <Route element={<SkillsPage />} path="/skills" />
-            <Route element={<TimelinePage />} path="/timeline" />
-            <Route element={<SettingsPage />} path="/settings" />
+          <Route element={<ProtectedRoutes />}>
+            <Route element={<AppLayout />}>
+              <Route element={<DashboardPage />} path="/dashboard" />
+              <Route element={<GenomePage />} path="/genome" />
+              <Route element={<ActivityPage />} path="/activity" />
+              <Route element={<SkillsPage />} path="/skills" />
+              <Route element={<TimelinePage />} path="/timeline" />
+              <Route element={<SettingsPage />} path="/settings" />
+            </Route>
           </Route>
           <Route element={<Navigate replace to="/" />} path="*" />
         </Routes>

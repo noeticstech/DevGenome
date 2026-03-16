@@ -1,0 +1,7 @@
+export * from './githubClient'
+export * from './githubCommitService'
+export * from './githubLanguageService'
+export * from './githubNormalizer'
+export * from './githubRepoService'
+export * from './githubTypes'
+export * from './githubUserService'

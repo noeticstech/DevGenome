@@ -4,18 +4,28 @@ import type { SkillDatum } from '@/types'
 interface GenomeHelixProps {
   score: number
   strands: SkillDatum[]
+  dominantMode?: string
+  highestStrand?: string
+  nextUnlock?: string
 }
 
 const leftColumnCount = 4
 
-export function GenomeHelix({ score, strands }: GenomeHelixProps) {
+export function GenomeHelix({
+  score,
+  strands,
+  dominantMode = 'Developer profile',
+  highestStrand = 'In progress',
+  nextUnlock = 'Keep shipping',
+}: GenomeHelixProps) {
   const leftSkills = strands.slice(0, leftColumnCount)
   const rightSkills = strands.slice(leftColumnCount)
 
   const height = 430
   const width = 420
+  const spacing = strands.length > 1 ? (height - 104) / (strands.length - 1) : 0
   const levels = strands.map((strand, index) => {
-    const y = 52 + index * ((height - 104) / (strands.length - 1))
+    const y = 52 + index * spacing
     const wave = Math.sin(index * 0.78)
     const leftX = 120 + wave * 26
     const rightX = width - leftX
@@ -138,19 +148,19 @@ export function GenomeHelix({ score, strands }: GenomeHelixProps) {
             <p className="text-xs uppercase tracking-[0.22em] text-ink-soft">
               Dominant mode
             </p>
-            <p className="mt-2 text-sm font-semibold text-white">Systems-first builder</p>
+            <p className="mt-2 text-sm font-semibold text-white">{dominantMode}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-ink-soft">
               Highest strand
             </p>
-            <p className="mt-2 text-sm font-semibold text-white">System Design</p>
+            <p className="mt-2 text-sm font-semibold text-white">{highestStrand}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-ink-soft">
               Next unlock
             </p>
-            <p className="mt-2 text-sm font-semibold text-white">Production security</p>
+            <p className="mt-2 text-sm font-semibold text-white">{nextUnlock}</p>
           </div>
         </div>
       </div>

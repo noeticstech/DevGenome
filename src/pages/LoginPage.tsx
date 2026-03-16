@@ -1,58 +1,84 @@
 import { ArrowRight, Github, ShieldCheck } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { LoadingState } from '@/components/ui/LoadingState'
+import { StateNotice } from '@/components/ui/StateNotice'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { useAuth } from '@/hooks/useAuth'
+import { useWorkspaceRefresh } from '@/hooks/useWorkspaceRefresh'
+import { getGithubAuthStartUrl } from '@/lib/api/auth'
+import { formatDate, formatRelativeTime, getUserDisplayName } from '@/lib/productPresentation'
 import { loginPlatforms, loginSecurityHighlights } from '@/data/login'
 
-const stages = [
-  'Initializing DNA scan',
-  'Connecting to GitHub',
-  'Analyzing repository metadata',
-  'Generating developer genome',
-]
-
 export function LoginPage() {
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [stageIndex, setStageIndex] = useState(0)
-  const [complete, setComplete] = useState(false)
+  const { isAuthenticated, refresh, status, user } = useAuth()
+  const { error, isRefreshing, runRefresh, statusMessage } = useWorkspaceRefresh()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+
+  const authSuccess = searchParams.get('auth') === 'success'
+  const notice = searchParams.get('notice')
+  const githubAccount = user?.connectedAccounts.find((account) => account.provider === 'GITHUB')
 
   useEffect(() => {
-    if (!isAnalyzing || complete) {
-      return
+    if (authSuccess) {
+      void refresh()
     }
+  }, [authSuccess, refresh])
 
-    if (stageIndex === stages.length - 1) {
-      const finishTimer = window.setTimeout(() => setComplete(true), 900)
-      return () => window.clearTimeout(finishTimer)
-    }
-
-    const timer = window.setTimeout(() => {
-      setStageIndex((current) => current + 1)
-    }, 1100)
-
-    return () => window.clearTimeout(timer)
-  }, [complete, isAnalyzing, stageIndex])
+  const loadingSteps = useMemo(
+    () => [
+      {
+        label: 'Completing GitHub authentication',
+        done: isAuthenticated && !isRefreshing,
+        active: authSuccess && status === 'loading',
+      },
+      {
+        label: 'Syncing repository metadata',
+        done: Boolean(githubAccount?.lastSyncedAt) && !isRefreshing,
+        active: isRefreshing && statusMessage === 'Syncing GitHub metadata',
+      },
+      {
+        label: 'Generating Developer Genome',
+        done: !isRefreshing && Boolean(githubAccount?.lastSyncedAt),
+        active: isRefreshing && statusMessage === 'Generating Developer Genome',
+      },
+    ],
+    [authSuccess, githubAccount?.lastSyncedAt, isAuthenticated, isRefreshing, status, statusMessage],
+  )
 
   const progress = useMemo(() => {
-    if (complete) {
+    if (isRefreshing) {
+      return statusMessage === 'Generating Developer Genome' ? 82 : 56
+    }
+
+    if (authSuccess && status === 'loading') {
+      return 42
+    }
+
+    if (githubAccount?.lastSyncedAt) {
       return 100
     }
 
-    return [18, 42, 68, 88][stageIndex] ?? 0
-  }, [complete, stageIndex])
+    if (isAuthenticated) {
+      return 35
+    }
 
-  const loadingSteps = stages.map((label, index) => ({
-    label,
-    done: complete || index < stageIndex,
-    active: isAnalyzing && !complete && index === stageIndex,
-  }))
+    return 8
+  }, [authSuccess, githubAccount?.lastSyncedAt, isAuthenticated, isRefreshing, status, statusMessage])
 
-  const handleAnalyze = () => {
-    setIsAnalyzing(true)
-    setComplete(false)
-    setStageIndex(0)
+  const handleConnectGithub = () => {
+    window.location.assign(getGithubAuthStartUrl())
+  }
+
+  const handlePrepareWorkspace = async () => {
+    const success = await runRefresh()
+    await refresh()
+
+    if (success) {
+      navigate('/dashboard')
+    }
   }
 
   return (
@@ -67,27 +93,122 @@ export function LoginPage() {
               Connect Your Developer Accounts
             </h1>
             <p className="mt-4 text-base leading-7 text-ink-muted">
-              Link your coding platforms to generate a unique Developer Genome profile.
+              Link GitHub to sync repository metadata and generate your live Developer
+              Genome.
             </p>
           </div>
 
-          <button
-            className="mt-8 flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-left text-canvas transition hover:bg-white/95 disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={isAnalyzing && !complete}
-            onClick={handleAnalyze}
-            type="button"
-          >
-            <span className="flex items-center gap-3 text-sm font-semibold">
-              <Github className="h-5 w-5" />
-              Connect GitHub
-            </span>
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {notice === 'github_disconnected' ? (
+            <div className="mt-6">
+              <StateNotice
+                description="GitHub was disconnected successfully. Historical DevGenome data remains until you choose to delete it."
+                title="GitHub disconnected"
+                tone="cyan"
+              />
+            </div>
+          ) : null}
 
-          <p className="mt-4 text-sm leading-6 text-ink-soft">
-            Analyze repositories, commit patterns, and language usage across your public
-            profile.
-          </p>
+          {notice === 'signed_out' ? (
+            <div className="mt-6">
+              <StateNotice
+                description="Your session has been cleared safely."
+                title="Signed out"
+                tone="cyan"
+              />
+            </div>
+          ) : null}
+
+          {authSuccess && isAuthenticated ? (
+            <div className="mt-6">
+              <StateNotice
+                description="GitHub is connected. Run a sync to populate the live product pages with your latest metadata."
+                title="GitHub connected"
+                tone="cyan"
+              />
+            </div>
+          ) : null}
+
+          {isAuthenticated ? (
+            <div className="mt-8 space-y-4">
+              <div className="rounded-3xl border border-cyan/20 bg-cyan/10 p-5 text-left">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-cyan">
+                      Connected account
+                    </p>
+                    <p className="mt-3 font-display text-3xl font-bold text-white">
+                      {getUserDisplayName(user ?? {})}
+                    </p>
+                    <p className="mt-2 text-sm text-ink-muted">
+                      {githubAccount?.username
+                        ? `GitHub linked as @${githubAccount.username}`
+                        : 'GitHub is connected and ready to sync.'}
+                    </p>
+                  </div>
+                  <StatusBadge label="Connected" tone="cyan" />
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-ink-soft">
+                      Last sync
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-white">
+                      {githubAccount?.lastSyncedAt
+                        ? formatRelativeTime(githubAccount.lastSyncedAt)
+                        : 'Not synced yet'}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-xs uppercase tracking-[0.18em] text-ink-soft">
+                      Account created
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-white">
+                      {formatDate(user?.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-left text-canvas transition hover:bg-white/95 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isRefreshing}
+                onClick={handlePrepareWorkspace}
+                type="button"
+              >
+                <span className="flex items-center gap-3 text-sm font-semibold">
+                  <Github className="h-5 w-5" />
+                  {githubAccount?.lastSyncedAt
+                    ? 'Refresh sync and analysis'
+                    : 'Run first sync and analysis'}
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <p className="text-sm leading-6 text-ink-soft">
+                This runs a fresh GitHub metadata sync and regenerates your Developer Genome.
+              </p>
+            </div>
+          ) : (
+            <>
+              <button
+                className="mt-8 flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-left text-canvas transition hover:bg-white/95 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={status === 'loading'}
+                onClick={handleConnectGithub}
+                type="button"
+              >
+                <span className="flex items-center gap-3 text-sm font-semibold">
+                  <Github className="h-5 w-5" />
+                  Connect GitHub
+                </span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <p className="mt-4 text-sm leading-6 text-ink-soft">
+                DevGenome reads repository metadata, language usage, and activity summaries
+                through GitHub OAuth.
+              </p>
+            </>
+          )}
 
           <div className="mt-6 space-y-3">
             {loginPlatforms
@@ -115,13 +236,25 @@ export function LoginPage() {
           <div className="mt-8">
             <LoadingState
               description={
-                complete
-                  ? 'Genome sequencing complete. Your interactive product preview is ready.'
-                  : 'A polished UI-only progress state to simulate the analysis flow without any backend integration.'
+                error
+                  ? error
+                  : isRefreshing
+                    ? 'DevGenome is syncing metadata and regenerating your latest analysis.'
+                    : authSuccess && status === 'loading'
+                      ? 'Completing GitHub sign-in and restoring your authenticated workspace.'
+                      : isAuthenticated
+                        ? 'Your account is connected. Run a sync whenever you want to refresh the product data.'
+                        : 'Connect GitHub to start the real DevGenome sync and analysis pipeline.'
               }
               progress={progress}
               steps={loadingSteps}
-              title={complete ? 'Developer genome ready' : 'Analysis progress'}
+              title={
+                isRefreshing
+                  ? 'Preparing your workspace'
+                  : isAuthenticated
+                    ? 'Workspace connection'
+                    : 'Connection progress'
+              }
             />
           </div>
 
@@ -131,27 +264,26 @@ export function LoginPage() {
               <div className="space-y-2">
                 <p className="font-semibold text-white">Security by design</p>
                 <p className="text-sm leading-6 text-ink-muted">
-                  DevGenome securely reads public repository metadata using OAuth.
-                  Your source code is never stored on our servers.
+                  DevGenome uses metadata-only analysis. Source code storage remains disabled.
                 </p>
               </div>
             </div>
           </div>
 
-          {complete ? (
+          {isAuthenticated ? (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-violet px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-soft"
                 to="/dashboard"
               >
-                Open dashboard preview
+                Open dashboard
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
-                to="/genome"
+                to="/settings"
               >
-                Jump to genome page
+                Review settings
               </Link>
             </div>
           ) : null}
@@ -161,11 +293,12 @@ export function LoginPage() {
           <div>
             <span className="eyebrow">Connect once, explore everywhere</span>
             <h2 className="mt-6 font-display text-4xl font-bold text-white sm:text-5xl">
-              A focused connection flow that still feels like the product
+              A focused connection flow that now uses the live DevGenome backend
             </h2>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-ink-muted">
-              This login screen keeps a clean entry experience while preserving the same
-              dark DevGenome visual system used across the SaaS workspace.
+              GitHub OAuth, sync, and analysis are now wired end to end. This screen stays
+              clean, but it now reflects real account state and prepares the workspace with
+              the actual backend pipeline.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-3">

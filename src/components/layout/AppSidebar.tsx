@@ -1,11 +1,38 @@
+import { Binary, Github, Sparkles } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 import { Logo } from '@/components/ui/Logo'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { appNavigation, sidebarFooterHighlights } from '@/data/app'
+import { useAuth } from '@/hooks/useAuth'
+import { appNavigation } from '@/data/app'
 import { cn } from '@/lib/cn'
+import { formatRelativeTime } from '@/lib/productPresentation'
 
 export function AppSidebar() {
+  const { user } = useAuth()
+  const githubAccount = user?.connectedAccounts.find((account) => account.provider === 'GITHUB')
+  const sidebarHighlights = [
+    {
+      label: 'Source code storage',
+      value: 'Disabled',
+      icon: Binary,
+    },
+    {
+      label: 'Analysis mode',
+      value: 'Metadata only',
+      icon: Sparkles,
+    },
+    {
+      label: 'GitHub',
+      value: githubAccount?.lastSyncedAt
+        ? `Synced ${formatRelativeTime(githubAccount.lastSyncedAt)}`
+        : githubAccount
+          ? 'Connected'
+          : 'Not linked',
+      icon: Github,
+    },
+  ]
+
   return (
     <aside className="hidden w-[292px] shrink-0 border-r border-white/6 bg-black/30 px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col">
       <Logo className="px-2" compact />
@@ -58,10 +85,12 @@ export function AppSidebar() {
           </p>
           <div className="mt-4 flex items-center gap-3">
             <span className="h-2.5 w-2.5 rounded-full bg-cyan shadow-[0_0_18px_rgba(34,211,238,0.9)]" />
-            <p className="text-sm font-medium text-white">Neural sync active</p>
+            <p className="text-sm font-medium text-white">
+              {githubAccount ? 'Workspace connected' : 'Awaiting GitHub connection'}
+            </p>
           </div>
           <div className="mt-4 space-y-3">
-            {sidebarFooterHighlights.map((item) => {
+            {sidebarHighlights.map((item) => {
               const Icon = item.icon
 
               return (
