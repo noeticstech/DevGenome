@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevGenome - Developer Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#0a060a",
+                        "accent-purple": "#a855f7",
+                        "accent-blue": "#3b82f6",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glow-border {
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+        .dna-gradient {
+            background: linear-gradient(180deg, #3b82f6 0%, #a855f7 100%);
+        }
+        .bg-mesh {
+            background-color: #0a060a;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(236, 91, 19, 0.05) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 min-h-screen bg-mesh selection:bg-primary/30">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-white/5 bg-black/20 backdrop-blur-md flex flex-col z-20">
+<div class="p-6 flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(236,91,19,0.4)]">
+<span class="material-symbols-outlined text-white text-xl">genetics</span>
+</div>
+<h1 class="font-black text-xl tracking-tight text-white">DevGenome</h1>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl transition-all shadow-[0_0_10px_rgba(236,91,19,0.1)]" href="#">
+<span class="material-symbols-outlined text-[20px]">biotech</span>
+<span class="text-sm font-bold">Genome Profile</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="text-sm font-medium">Activity Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">target</span>
+<span class="text-sm font-medium">Skill Gap</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">work_history</span>
+<span class="text-sm font-medium">Career Fit</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">timeline</span>
+<span class="text-sm font-medium">Timeline</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto relative">
+<!-- Top Nav -->
+<header class="sticky top-0 z-30 flex items-center justify-between px-8 py-4 glass-panel border-x-0 border-t-0">
+<div class="flex-1 max-w-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all" placeholder="Search developer genomes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-primary rounded-full shadow-[0_0_5px_rgba(236,91,19,1)]"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-white/10">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-white">Alex Rivera</p>
+<p class="text-[10px] text-primary">Pro Level</p>
+</div>
+<div class="size-10 rounded-xl bg-center bg-cover border border-white/20" data-alt="User profile avatar of a developer" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB47ZHdQLOzuKGepZt4SHt2czeUyAdIb7AseDHaJqPb6wdLxoTJM5WHPXd3G73PVQLhkBnu9Pij0SKU7bdLCdOaoI3MCNjW4gJSw5Mzrr25V0pCuip224s65fJXpsCwbgb8s_RYRF-hn3TZctSvgn9MrZ2PvRjhViuumoVPIacvE-eSf34FjbE4LpTT8FS0ep0ycdFZ7sy-DGKZRM10kavUYO9eVNECjJltRxtSf8ifzM7CtqR7_g5BV1Rh4J2mBnCnqGomKgd0f2Ic')"></div>
+</div>
+</div>
+</header>
+<div class="px-8 py-8">
+<!-- Header -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+<div>
+<h2 class="text-3xl font-black text-white tracking-tight">Your Developer Genome</h2>
+<p class="text-slate-400 mt-1">AI-driven multi-dimensional analysis of your engineering footprint</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="glass-panel glow-border px-6 py-3 rounded-2xl flex items-center gap-4">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-primary font-bold">Genome Score</p>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-black text-white">74</span>
+<span class="text-slate-500 text-sm">/100</span>
+</div>
+</div>
+<div class="h-10 w-[1px] bg-white/10"></div>
+<span class="bg-primary text-white text-[10px] font-black uppercase px-2 py-1 rounded">Optimized</span>
+</div>
+</div>
+</div>
+<!-- Main Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Visualization Panel -->
+<div class="col-span-12 lg:col-span-8 glass-panel glow-border rounded-3xl p-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-8 opacity-20 pointer-events-none group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-[180px] text-accent-blue">neurology</span>
+</div>
+<h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                            DNA Skill Visualization
+                        </h3>
+<div class="flex items-end justify-between h-80 px-4 relative">
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar" style="height: 82%;">
+<div class="absolute inset-0 bg-accent-blue/40 blur-xl opacity-0 group-hover/bar:opacity-100 transition-opacity"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">82%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Algorithms</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar" style="height: 78%;">
+<div class="absolute inset-0 bg-accent-blue/40 blur-xl opacity-0 group-hover/bar:opacity-100 transition-opacity"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">78%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Backend</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar opacity-60" style="height: 45%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">45%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Frontend</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar opacity-40" style="height: 35%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">35%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">DevOps</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar" style="height: 60%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">60%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Databases</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-12 dna-gradient rounded-full relative group/bar opacity-50" style="height: 40%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-primary text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity border border-primary/30">40%</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">System Design</span>
+</div>
+</div>
+</div>
+<!-- Developer Archetype -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="glass-panel glow-border rounded-3xl p-6 bg-gradient-to-br from-accent-purple/10 to-transparent">
+<div class="flex items-center gap-4 mb-4">
+<div class="size-12 rounded-xl bg-accent-purple/20 flex items-center justify-center text-accent-purple shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+<span class="material-symbols-outlined text-3xl">construction</span>
+</div>
+<div>
+<h4 class="text-white font-bold">The Builder</h4>
+<p class="text-[10px] text-accent-purple font-black uppercase tracking-widest">Core Archetype</p>
+</div>
+</div>
+<p class="text-sm text-slate-400 leading-relaxed">
+                                You excel at translating complex architectural requirements into robust, scalable implementations. Your code reflects a deep commitment to durability and performance.
+                            </p>
+<div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center">
+<span class="text-[10px] font-bold text-slate-500 uppercase">Primary Trait</span>
+<span class="text-xs text-white font-bold">Structural Integrity</span>
+</div>
+</div>
+<!-- Skill Breakdown List -->
+<div class="glass-panel glow-border rounded-3xl p-6 flex-1">
+<h3 class="text-sm font-black text-white uppercase tracking-widest mb-6">Detailed Breakdown</h3>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-medium text-slate-300">Complexity Handling</span>
+<span class="text-xs font-bold text-primary">88%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(236,91,19,0.5)]" style="width: 88%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-medium text-slate-300">Maintenance Score</span>
+<span class="text-xs font-bold text-accent-blue">72%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-accent-blue rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" style="width: 72%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-medium text-slate-300">Security Awareness</span>
+<span class="text-xs font-bold text-accent-purple">64%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-accent-purple rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]" style="width: 64%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Career Fit Analysis -->
+<div class="col-span-12 glass-panel glow-border rounded-3xl p-8">
+<h3 class="text-lg font-bold text-white mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology_alt</span>
+                            Career Fit Analysis
+                        </h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="p-6 rounded-2xl bg-white/5 border border-primary/20 hover:bg-white/10 transition-all cursor-default">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] font-black uppercase text-primary tracking-widest">Primary Fit</span>
+<span class="material-symbols-outlined text-primary">verified</span>
+</div>
+<h4 class="text-xl font-black text-white mb-2">Backend Engineer</h4>
+<p class="text-sm text-slate-400">94% alignment with coding patterns, data handling, and system logic proficiency.</p>
+</div>
+<div class="p-6 rounded-2xl bg-white/5 border border-accent-blue/20 hover:bg-white/10 transition-all cursor-default">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] font-black uppercase text-accent-blue tracking-widest">Secondary Fit</span>
+<span class="material-symbols-outlined text-accent-blue">cloud_sync</span>
+</div>
+<h4 class="text-xl font-black text-white mb-2">DevOps Engineer</h4>
+<p class="text-sm text-slate-400">68% alignment based on infrastructure-as-code trends and automation logic.</p>
+</div>
+<div class="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-default opacity-60">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Weak Fit</span>
+<span class="material-symbols-outlined text-slate-500">palette</span>
+</div>
+<h4 class="text-xl font-black text-white mb-2">UI Designer</h4>
+<p class="text-sm text-slate-400">12% alignment. Activity shows minimal focus on aesthetic composition or styling.</p>
+</div>
+</div>
+</div>
+<!-- Evolution Timeline -->
+<div class="col-span-12 glass-panel glow-border rounded-3xl p-8 mb-8">
+<h3 class="text-lg font-bold text-white mb-10 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+                            Developer Evolution
+                        </h3>
+<div class="relative px-4">
+<!-- Timeline Line -->
+<div class="absolute top-0 bottom-0 left-4 w-px bg-gradient-to-b from-primary via-accent-purple to-accent-blue opacity-30"></div>
+<!-- Evolution Events -->
+<div class="space-y-12">
+<div class="relative pl-12">
+<div class="absolute left-[-2px] top-1.5 size-2.5 rounded-full bg-primary shadow-[0_0_10px_#ec5b13]"></div>
+<div class="flex flex-col md:flex-row md:items-center gap-4">
+<span class="text-sm font-black text-primary min-w-[100px]">2023 - Entry</span>
+<div class="flex-1 p-4 rounded-xl bg-white/5 border border-white/10">
+<h5 class="text-sm font-bold text-white mb-1">Foundational Web Technologies</h5>
+<p class="text-xs text-slate-400">Mastered HTML, CSS, and basic JavaScript interactions.</p>
+</div>
+</div>
+</div>
+<div class="relative pl-12">
+<div class="absolute left-[-2px] top-1.5 size-2.5 rounded-full bg-accent-purple shadow-[0_0_10px_#a855f7]"></div>
+<div class="flex flex-col md:flex-row md:items-center gap-4">
+<span class="text-sm font-black text-accent-purple min-w-[100px]">2024 - Growth</span>
+<div class="flex-1 p-4 rounded-xl bg-white/5 border border-white/10">
+<h5 class="text-sm font-bold text-white mb-1">Backend APIs &amp; Logic</h5>
+<p class="text-xs text-slate-400">Transitioned to Node.js, RESTful architectures, and SQL databases.</p>
+</div>
+</div>
+</div>
+<div class="relative pl-12">
+<div class="absolute left-[-2px] top-1.5 size-2.5 rounded-full bg-accent-blue shadow-[0_0_10px_#3b82f6]"></div>
+<div class="flex flex-col md:flex-row md:items-center gap-4">
+<span class="text-sm font-black text-accent-blue min-w-[100px]">2025 - Scaling</span>
+<div class="flex-1 p-4 rounded-xl bg-white/5 border border-white/10">
+<h5 class="text-sm font-bold text-white mb-1">Cloud Infrastructure</h5>
+<p class="text-xs text-slate-400">Advanced to AWS, Docker orchestration, and distributed systems.</p>
+</div>
+</div>
+</div>
+<div class="relative pl-12">
+<div class="absolute left-[-2px] top-1.5 size-2.5 rounded-full bg-slate-500"></div>
+<div class="flex flex-col md:flex-row md:items-center gap-4">
+<span class="text-sm font-black text-slate-500 min-w-[100px]">2026 - Target</span>
+<div class="flex-1 p-4 rounded-xl bg-white/5 border border-white/5 opacity-50">
+<h5 class="text-sm font-bold text-white mb-1">AI Agentic Architectures</h5>
+<p class="text-xs text-slate-400">Targeting LLM orchestration and autonomous system design.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

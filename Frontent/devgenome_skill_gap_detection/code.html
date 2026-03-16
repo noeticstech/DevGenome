@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevGenome | Skill Gap Detection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#0a060a",
+                        "neon-purple": "#a855f7",
+                        "electric-blue": "#3b82f6",
+                        "glass": "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(255, 255, 255, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .neon-glow-purple {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+        .neon-glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+        body {
+            background: radial-gradient(circle at top right, #1e1b4b, #0a060a 40%),
+                        radial-gradient(circle at bottom left, #2e1065, #0a060a 40%);
+        }
+    </style>
+</head>
+<body class="font-display text-slate-100 min-h-screen">
+<div class="flex flex-col h-screen">
+<!-- Top Nav -->
+<header class="h-16 border-b border-glass-border glass-panel sticky top-0 z-50 px-6 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-gradient-to-tr from-neon-purple to-electric-blue rounded-lg flex items-center justify-center text-white font-black text-xl">D</div>
+<h2 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">DevGenome</h2>
+</div>
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all placeholder:text-slate-500" placeholder="Search skills, technologies, or roles..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-slate-300 hover:bg-white/5 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-neon-purple rounded-full"></span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-neon-purple/50 p-0.5 overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="User profile avatar in neon circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeKBXNXmUHOzIt3C24FcTvRuPzSY-50tqlXc3Udeck0mRwcAiPIqRldkljwUvhFFqSHp8E_rO9he3qBv0qYjj3NND2V6r2hFiXbD-Gy-ZpOwkBHNaej-nJuzdXD_sTKt2gmJO1kGyZ16W9aRDpwfmZGuzKYZ9jYsBW9IsPS6q-k4tuka19B7XQd-6SxHovFpGrWrE799TZsalRuh7sVFNJNoZ5zgmUnQ20XBOaemy2uvHJcAGNpP_VcdjKt4tgJkSfB74WHjbGaOSh"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-glass-border bg-black/20 flex flex-col p-4 gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">genetics</span>
+<span class="text-sm font-medium">Genome Profile</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="text-sm font-medium">Activity Analysis</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-neon-purple/10 text-neon-purple border border-neon-purple/20 neon-glow-purple" href="#">
+<span class="material-symbols-outlined">contract_edit</span>
+<span class="text-sm font-bold">Skill Gap</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">ads_click</span>
+<span class="text-sm font-medium">Career Fit</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">timeline</span>
+<span class="text-sm font-medium">Timeline</span>
+</a>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-transparent p-8">
+<!-- Header -->
+<div class="flex justify-between items-start mb-10">
+<div class="max-w-2xl">
+<h1 class="text-4xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-500">Skill Gap Detection</h1>
+<p class="text-slate-400 text-lg">Identify the skills you already have, discover what is missing, and plan your next learning steps with precision.</p>
+</div>
+<div class="glass-panel rounded-2xl p-4 flex items-center gap-6 border-neon-purple/20">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Target Role</p>
+<p class="text-white font-bold text-lg">Full Stack Developer</p>
+</div>
+<div class="bg-neon-purple/20 text-neon-purple px-4 py-2 rounded-xl font-black text-xl neon-glow-purple border border-neon-purple/30">
+                            72% <span class="text-xs">Match</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- Comparison Chart -->
+<div class="col-span-12 lg:col-span-8 glass-panel rounded-3xl p-6">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-lg">Current Skills vs Target Role Requirements</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-neon-purple"></div>
+<span class="text-xs text-slate-400 font-medium tracking-tight">Current</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full border border-electric-blue"></div>
+<span class="text-xs text-slate-400 font-medium tracking-tight">Target</span>
+</div>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between px-4 gap-4">
+<!-- Chart Bar -->
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 90%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-full transition-all duration-500 group-hover:bg-electric-blue/5"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">Frontend</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 75%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-full"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">Backend</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 40%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[80%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">Databases</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 25%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[90%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">Auth</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 30%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[85%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">API Sec</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 60%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[80%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">System Design</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 20%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[75%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">DevOps</p>
+</div>
+<div class="flex flex-col items-center flex-1 h-full justify-end group">
+<div class="relative w-full flex justify-center items-end gap-1 h-full">
+<div class="w-6 bg-neon-purple rounded-t-lg transition-all duration-500 group-hover:bg-purple-400 neon-glow-purple" style="height: 85%;"></div>
+<div class="w-6 border-x border-t border-electric-blue/40 rounded-t-lg h-[95%]"></div>
+</div>
+<p class="text-[10px] mt-4 font-bold text-slate-500 uppercase rotate-45 lg:rotate-0">Testing</p>
+</div>
+</div>
+</div>
+<!-- Readiness Gauge -->
+<div class="col-span-12 lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-neon-purple/5 to-electric-blue/5 pointer-events-none"></div>
+<div class="relative w-48 h-48 flex items-center justify-center mb-6">
+<svg class="w-full h-full -rotate-90">
+<circle cx="96" cy="96" fill="none" r="88" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
+<circle cx="96" cy="96" fill="none" r="88" stroke="url(#gradient-readiness)" stroke-dasharray="553" stroke-dashoffset="155" stroke-linecap="round" stroke-width="12"></circle>
+<defs>
+<lineargradient id="gradient-readiness" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#a855f7"></stop>
+<stop offset="100%" stop-color="#3b82f6"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-4xl font-black">72%</span>
+<span class="text-[10px] uppercase font-bold text-slate-400">Readiness</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 w-full">
+<div class="bg-white/5 p-3 rounded-xl border border-white/5">
+<p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Frontend</p>
+<p class="text-white font-bold">88%</p>
+</div>
+<div class="bg-white/5 p-3 rounded-xl border border-white/5">
+<p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Backend</p>
+<p class="text-white font-bold">74%</p>
+</div>
+<div class="bg-white/5 p-3 rounded-xl border border-white/5">
+<p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Infra</p>
+<p class="text-white font-bold">41%</p>
+</div>
+<div class="bg-white/5 p-3 rounded-xl border border-white/5">
+<p class="text-slate-500 text-[10px] font-bold uppercase mb-1">Production</p>
+<p class="text-white font-bold">36%</p>
+</div>
+</div>
+</div>
+<!-- Missing Skills (Alerts) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+<h3 class="font-bold text-lg mb-2">Critical Skill Gaps</h3>
+<div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex gap-4 items-start">
+<span class="material-symbols-outlined text-red-500">warning</span>
+<div>
+<h4 class="font-bold text-red-100 text-sm">Authentication Systems</h4>
+<p class="text-xs text-red-100/60 mt-1">Missing deep knowledge in OAuth2 &amp; JWT architectures.</p>
+<span class="inline-block mt-2 px-2 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase">High Priority</span>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4 items-start">
+<span class="material-symbols-outlined text-amber-500">database</span>
+<div>
+<h4 class="font-bold text-amber-100 text-sm">Database Indexing</h4>
+<p class="text-xs text-amber-100/60 mt-1">Understanding query optimization is crucial for scale.</p>
+<span class="inline-block mt-2 px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold uppercase">Medium</span>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex gap-4 items-start">
+<span class="material-symbols-outlined text-red-500">shield_lock</span>
+<div>
+<h4 class="font-bold text-red-100 text-sm">API Security</h4>
+<p class="text-xs text-red-100/60 mt-1">Rate limiting and CORS protection gaps identified.</p>
+<span class="inline-block mt-2 px-2 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase">High Priority</span>
+</div>
+</div>
+</div>
+<!-- Learning Roadmap -->
+<div class="col-span-12 lg:col-span-4 glass-panel rounded-3xl p-6">
+<h3 class="font-bold text-lg mb-6">Personalized Learning Path</h3>
+<div class="space-y-6 relative">
+<div class="absolute left-4 top-2 bottom-2 w-0.5 bg-gradient-to-b from-neon-purple via-electric-blue to-white/10"></div>
+<div class="relative pl-10">
+<div class="absolute left-2.5 top-1.5 w-3 h-3 rounded-full bg-neon-purple ring-4 ring-neon-purple/20"></div>
+<h4 class="text-sm font-bold text-white">Step 1: Authentication Fundamentals</h4>
+<p class="text-xs text-slate-500 mt-1">Master JWT, OAuth and Session Management.</p>
+<p class="text-[10px] text-neon-purple font-bold mt-2">EST. 12 HOURS</p>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-2.5 top-1.5 w-3 h-3 rounded-full bg-electric-blue ring-4 ring-electric-blue/20"></div>
+<h4 class="text-sm font-bold text-white">Step 2: Build Secure REST APIs</h4>
+<p class="text-xs text-slate-500 mt-1">Focus on Node/Express with security middlewares.</p>
+<p class="text-[10px] text-electric-blue font-bold mt-2">EST. 20 HOURS</p>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-2.5 top-1.5 w-3 h-3 rounded-full bg-white/20"></div>
+<h4 class="text-sm font-bold text-slate-300">Step 3: Database Optimization</h4>
+<p class="text-xs text-slate-500 mt-1">Indexing strategies and caching with Redis.</p>
+</div>
+<div class="relative pl-10">
+<div class="absolute left-2.5 top-1.5 w-3 h-3 rounded-full bg-white/20"></div>
+<h4 class="text-sm font-bold text-slate-300">Step 4: System Design Basics</h4>
+<p class="text-xs text-slate-500 mt-1">Load balancing and horizontal scaling concepts.</p>
+</div>
+</div>
+</div>
+<!-- Suggested Projects -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+<h3 class="font-bold text-lg mb-2">Suggested Projects</h3>
+<div class="glass-panel p-4 rounded-2xl hover:border-electric-blue/30 transition-all cursor-pointer group">
+<div class="flex items-center justify-between mb-3">
+<span class="material-symbols-outlined text-electric-blue">rocket_launch</span>
+<span class="bg-electric-blue/10 text-electric-blue text-[10px] font-black px-2 py-1 rounded">HIGH IMPACT</span>
+</div>
+<h4 class="font-bold text-sm group-hover:text-electric-blue transition-colors">Build a Full Stack Auth App</h4>
+<p class="text-xs text-slate-500 mt-2">Implement Next.js with Auth.js and Prisma to solidify your authentication knowledge.</p>
+</div>
+<div class="glass-panel p-4 rounded-2xl hover:border-neon-purple/30 transition-all cursor-pointer group">
+<div class="flex items-center justify-between mb-3">
+<span class="material-symbols-outlined text-neon-purple">code_blocks</span>
+<span class="bg-neon-purple/10 text-neon-purple text-[10px] font-black px-2 py-1 rounded uppercase">Portfolio Project</span>
+</div>
+<h4 class="font-bold text-sm group-hover:text-neon-purple transition-colors">Create a REST API with RBAC</h4>
+<p class="text-xs text-slate-500 mt-2">Design an enterprise-level API with Role-Based Access Control and documentation.</p>
+</div>
+<div class="glass-panel p-4 rounded-2xl hover:border-white/30 transition-all cursor-pointer group">
+<div class="flex items-center justify-between mb-3">
+<span class="material-symbols-outlined text-white/50">cloud_upload</span>
+<span class="bg-white/10 text-white/50 text-[10px] font-black px-2 py-1 rounded uppercase">Advance</span>
+</div>
+<h4 class="font-bold text-sm group-hover:text-white transition-colors">Deploy a Production-Ready App</h4>
+<p class="text-xs text-slate-500 mt-2">Dockerize your application and set up a full CI/CD pipeline with GitHub Actions.</p>
+</div>
+</div>
+<!-- Insight Text (Bottom) -->
+<div class="col-span-12 p-6 glass-panel rounded-3xl flex items-center gap-6 border-l-4 border-electric-blue">
+<div class="p-3 rounded-full bg-electric-blue/10 text-electric-blue">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<div>
+<h4 class="font-bold text-electric-blue">AI Insight: Skill Bottleneck Identified</h4>
+<p class="text-slate-400 text-sm mt-1">Your current trajectory shows high proficiency in logic, but security and deployment represent 80% of your remaining gap. Focusing on <strong>Authentication Systems</strong> and <strong>CI/CD</strong> will increase your readiness score by <strong>18%</strong> in the next 30 days.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

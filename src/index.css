@@ -1,0 +1,115 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-canvas font-sans text-ink antialiased;
+    background-image:
+      radial-gradient(circle at top, rgba(168, 85, 247, 0.2), transparent 38%),
+      radial-gradient(circle at 18% 12%, rgba(34, 211, 238, 0.12), transparent 22%),
+      radial-gradient(circle at 82% 0%, rgba(59, 130, 246, 0.1), transparent 26%),
+      linear-gradient(180deg, #050111 0%, #070313 48%, #050111 100%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 120px 120px;
+    mask-image: radial-gradient(circle at top, black 40%, transparent 88%);
+    opacity: 0.45;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  ::selection {
+    background: rgba(168, 85, 247, 0.35);
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .surface-panel {
+    @apply rounded-3xl border border-white/10 bg-white/[0.04] shadow-glow backdrop-blur-xl;
+  }
+
+  .surface-panel-strong {
+    @apply rounded-3xl border border-violet/20 bg-panel-strong/90 shadow-glow backdrop-blur-xl;
+  }
+
+  .surface-muted {
+    @apply rounded-3xl border border-white/5 bg-white/[0.025] backdrop-blur-lg;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #d9b4ff 48%, #4eeaff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-violet/25 bg-violet/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-violet-soft;
+  }
+
+  .glow-ring {
+    box-shadow:
+      0 0 0 1px rgba(168, 85, 247, 0.18),
+      0 0 0 6px rgba(168, 85, 247, 0.06);
+  }
+
+  .subtle-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.45) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.38);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
