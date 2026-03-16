@@ -9,6 +9,7 @@ import { insightsRouter } from './insights.routes'
 import { jobsRouter } from './jobs.routes'
 import { productRouter } from './product.routes'
 import { reportsRouter } from './reports.routes'
+import { sharingRouter } from './sharing.routes'
 import { settingsRouter } from './settings.routes'
 import { statusRouter } from './status.routes'
 
@@ -21,6 +22,7 @@ router.use(env.API_PREFIX, statusRouter)
 router.use(env.API_PREFIX, productRouter)
 router.use(env.API_PREFIX, insightsRouter)
 router.use(env.API_PREFIX, reportsRouter)
+router.use(env.API_PREFIX, sharingRouter)
 router.use(env.API_PREFIX, jobsRouter)
 router.use(env.API_PREFIX, settingsRouter)
 router.use(env.API_PREFIX, accountRouter)

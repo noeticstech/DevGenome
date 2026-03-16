@@ -422,6 +422,7 @@ model UserPreference {
   skillGapAlertsEnabled     Boolean           @default(true)
   productUpdatesEnabled     Boolean           @default(true)
   profileVisibility         ProfileVisibility @default(PRIVATE)
+  profileShareToken         String?           @unique
   metadataOnlyAnalysis      Boolean           @default(true)
   sourceCodeStorageDisabled Boolean           @default(true)
   targetRole                String?

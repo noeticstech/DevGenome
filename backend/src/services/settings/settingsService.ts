@@ -28,6 +28,7 @@ export async function getSettingsResponse(userId: string) {
             skillGapAlertsEnabled: true,
             productUpdatesEnabled: true,
             profileVisibility: true,
+            profileShareToken: true,
             metadataOnlyAnalysis: true,
             sourceCodeStorageDisabled: true,
           },
@@ -80,6 +81,7 @@ export async function getSettingsResponse(userId: string) {
       skillGapAlertsEnabled: user.preference?.skillGapAlertsEnabled ?? true,
       productUpdatesEnabled: user.preference?.productUpdatesEnabled ?? true,
       profileVisibility: user.preference?.profileVisibility ?? ProfileVisibility.PRIVATE,
+      profileShareToken: user.preference?.profileShareToken ?? null,
       metadataOnlyAnalysis: user.preference?.metadataOnlyAnalysis ?? true,
       sourceCodeStorageDisabled: user.preference?.sourceCodeStorageDisabled ?? true,
       githubAccount:

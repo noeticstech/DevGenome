@@ -45,6 +45,12 @@ export interface SettingsResponse {
   }
   privacy: {
     profileVisibility: ProfileVisibility
+    sharing: {
+      publicProfileEnabled: boolean
+      sharePath: string | null
+      revocationStrategy: 'disable_public_profile'
+      message: string
+    }
     metadataOnlyAnalysis: boolean
     sourceCodeStorage: {
       status: 'disabled'

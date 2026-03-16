@@ -44,6 +44,7 @@ export interface SettingsSnapshot {
   skillGapAlertsEnabled: boolean
   productUpdatesEnabled: boolean
   profileVisibility: ProfileVisibility
+  profileShareToken: string | null
   metadataOnlyAnalysis: boolean
   sourceCodeStorageDisabled: boolean
   githubAccount: SettingsGithubAccountRecord | null

@@ -1,74 +1,95 @@
-import { DashboardLayout } from '@prisma/client'
+import { randomBytes } from 'node:crypto'
+
+import { DashboardLayout, ProfileVisibility } from '@prisma/client'
 
 import { prisma } from '../../lib/prisma'
 import { invalidateUserRuntimeCache } from '../cache'
 import type { SettingsPreferenceUpdateInput } from './settingsTypes'
 import { getSettingsResponse } from './settingsService'
 
-function buildPreferenceUpdateData(input: SettingsPreferenceUpdateInput) {
+function generateProfileShareToken() {
+  return randomBytes(18).toString('base64url')
+}
+
+function buildPreferenceUpdateData(input: {
+  preferences: SettingsPreferenceUpdateInput
+  currentPreference: {
+    profileVisibility: ProfileVisibility
+    profileShareToken: string | null
+  } | null
+}) {
   const preferenceData: Record<string, unknown> = {}
+  const currentPreference = input.currentPreference
+  const preferences = input.preferences
 
-  if (input.targetRole !== undefined) {
-    preferenceData.targetRole = input.targetRole
+  if (preferences.targetRole !== undefined) {
+    preferenceData.targetRole = preferences.targetRole
   }
 
-  if (input.theme !== undefined) {
-    preferenceData.theme = input.theme
+  if (preferences.theme !== undefined) {
+    preferenceData.theme = preferences.theme
   }
 
-  if (input.accentColor !== undefined) {
-    preferenceData.accentColor = input.accentColor
+  if (preferences.accentColor !== undefined) {
+    preferenceData.accentColor = preferences.accentColor
   }
 
-  if (input.dashboardLayout !== undefined) {
-    preferenceData.dashboardLayout = input.dashboardLayout
+  if (preferences.dashboardLayout !== undefined) {
+    preferenceData.dashboardLayout = preferences.dashboardLayout
   }
 
-  if (input.compactDashboardEnabled !== undefined) {
-    preferenceData.compactDashboardEnabled = input.compactDashboardEnabled
+  if (preferences.compactDashboardEnabled !== undefined) {
+    preferenceData.compactDashboardEnabled = preferences.compactDashboardEnabled
   }
 
-  if (input.genomeScoreHeatmapEnabled !== undefined) {
-    preferenceData.genomeScoreHeatmapEnabled = input.genomeScoreHeatmapEnabled
+  if (preferences.genomeScoreHeatmapEnabled !== undefined) {
+    preferenceData.genomeScoreHeatmapEnabled = preferences.genomeScoreHeatmapEnabled
   }
 
-  if (input.weeklySummaryEnabled !== undefined) {
-    preferenceData.weeklySummaryEnabled = input.weeklySummaryEnabled
+  if (preferences.weeklySummaryEnabled !== undefined) {
+    preferenceData.weeklySummaryEnabled = preferences.weeklySummaryEnabled
   }
 
-  if (input.learningProgressEnabled !== undefined) {
-    preferenceData.learningProgressEnabled = input.learningProgressEnabled
+  if (preferences.learningProgressEnabled !== undefined) {
+    preferenceData.learningProgressEnabled = preferences.learningProgressEnabled
   }
 
-  if (input.skillGapAlertsEnabled !== undefined) {
-    preferenceData.skillGapAlertsEnabled = input.skillGapAlertsEnabled
+  if (preferences.skillGapAlertsEnabled !== undefined) {
+    preferenceData.skillGapAlertsEnabled = preferences.skillGapAlertsEnabled
   }
 
-  if (input.productUpdatesEnabled !== undefined) {
-    preferenceData.productUpdatesEnabled = input.productUpdatesEnabled
+  if (preferences.productUpdatesEnabled !== undefined) {
+    preferenceData.productUpdatesEnabled = preferences.productUpdatesEnabled
   }
 
-  if (input.profileVisibility !== undefined) {
-    preferenceData.profileVisibility = input.profileVisibility
+  if (preferences.profileVisibility !== undefined) {
+    preferenceData.profileVisibility = preferences.profileVisibility
+
+    if (preferences.profileVisibility === ProfileVisibility.PUBLIC) {
+      preferenceData.profileShareToken =
+        currentPreference?.profileShareToken ?? generateProfileShareToken()
+    } else {
+      preferenceData.profileShareToken = null
+    }
   }
 
-  if (input.metadataOnlyAnalysis !== undefined) {
-    preferenceData.metadataOnlyAnalysis = input.metadataOnlyAnalysis
+  if (preferences.metadataOnlyAnalysis !== undefined) {
+    preferenceData.metadataOnlyAnalysis = preferences.metadataOnlyAnalysis
   }
 
   if (
-    input.dashboardLayout !== undefined &&
-    input.compactDashboardEnabled === undefined
+    preferences.dashboardLayout !== undefined &&
+    preferences.compactDashboardEnabled === undefined
   ) {
     preferenceData.compactDashboardEnabled =
-      input.dashboardLayout === DashboardLayout.COMPACT
+      preferences.dashboardLayout === DashboardLayout.COMPACT
   }
 
   if (
-    input.compactDashboardEnabled !== undefined &&
-    input.dashboardLayout === undefined
+    preferences.compactDashboardEnabled !== undefined &&
+    preferences.dashboardLayout === undefined
   ) {
-    preferenceData.dashboardLayout = input.compactDashboardEnabled
+    preferenceData.dashboardLayout = preferences.compactDashboardEnabled
       ? DashboardLayout.COMPACT
       : DashboardLayout.DETAILED
   }
@@ -80,9 +101,22 @@ export async function updateSettingsPreferences(input: {
   userId: string
   preferences: SettingsPreferenceUpdateInput
 }) {
-  const preferenceUpdateData = buildPreferenceUpdateData(input.preferences)
-
   await prisma.$transaction(async (tx) => {
+    const currentPreference = await tx.userPreference.findUnique({
+      where: {
+        userId: input.userId,
+      },
+      select: {
+        profileVisibility: true,
+        profileShareToken: true,
+      },
+    })
+
+    const preferenceUpdateData = buildPreferenceUpdateData({
+      preferences: input.preferences,
+      currentPreference,
+    })
+
     if (input.preferences.displayName !== undefined) {
       await tx.user.update({
         where: { id: input.userId },

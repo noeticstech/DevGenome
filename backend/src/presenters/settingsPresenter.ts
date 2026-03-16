@@ -1,5 +1,6 @@
 import { DashboardLayout } from '@prisma/client'
 
+import { env } from '../config/env'
 import type {
   DeleteAccountResponse,
   DeleteSettingsHistoryResponse,
@@ -15,6 +16,14 @@ import type {
   SettingsLeetcodeAccountRecord,
   SettingsSnapshot,
 } from '../services/settings/settingsTypes'
+
+function buildPublicProfileSharePath(token: string | null) {
+  if (!token) {
+    return null
+  }
+
+  return `${env.API_PREFIX}/public/profile/${token}`
+}
 
 function presentComingSoonConnection(input: {
   provider: 'geeksforgeeks'
@@ -164,6 +173,20 @@ export function presentSettings(input: {
     },
     privacy: {
       profileVisibility: input.snapshot.profileVisibility,
+      sharing: {
+        publicProfileEnabled:
+          input.snapshot.profileVisibility === 'PUBLIC' &&
+          input.snapshot.profileShareToken !== null,
+        sharePath:
+          input.snapshot.profileVisibility === 'PUBLIC'
+            ? buildPublicProfileSharePath(input.snapshot.profileShareToken)
+            : null,
+        revocationStrategy: 'disable_public_profile',
+        message:
+          input.snapshot.profileVisibility === 'PUBLIC'
+            ? 'Your public DevGenome profile is enabled. Switch visibility away from Public to revoke the current share link.'
+            : 'Public sharing is disabled. Set profile visibility to Public to create a revocable share link.',
+      },
       metadataOnlyAnalysis: input.snapshot.metadataOnlyAnalysis,
       sourceCodeStorage: {
         status: 'disabled',
